@@ -3,7 +3,28 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
        guardarAlumno();
     });
+    mostrarAlumnos();
 });
+
+function mostrarAlumnos(){
+    let $tblAlumnos = document.querySelector("#tblAlumnos tbody");
+    n = localStorage.length;
+    $tblAlumnos.innerHTML = '';
+    for (let i = 0; i < n; i++){
+        let datos = JSON.parse(localStorage.getItem(i));
+    filas += `
+        <tr>
+            <td>${datos.codigo}</td>
+            <td>${datos.nombre}</td>
+            <td>${datos.direccion}</td>
+            <td>${datos.email}</td> 
+            <td>${datos.telefono}</td>
+            </td>
+
+        </tr>`;
+    }
+    $tblAlumnos.innerHTML = filas;
+}
 
 function guardarAlumno() {
     let datos = {
