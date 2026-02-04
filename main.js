@@ -1,63 +1,107 @@
-document.addEventListener("DOMContentLoaded", () => {
-    frmAlumnos.addEventListener("submit", (e) => {
-        e.preventDefault();
-       guardarAlumno();
-    });
-    mostrarAlumnos();
-});
-
-function mostrarAlumnos(){
-    let $tblAlumnos = document.querySelector("#tblAlumnos tbody");
-    n = localStorage.length;
-    $tblAlumnos.innerHTML = '';
-    for (let i = 0; i < n; i++){
-        let datos = JSON.parse(localStorage.getItem(i));
-    filas += `
-        <tr>
-            <td>${datos.codigo}</td>
-            <td>${datos.nombre}</td>
-            <td>${datos.direccion}</td>
-            <td>${datos.email}</td> 
-            <td>${datos.telefono}</td>
-            </td>
-
-        </tr>`;
-    }
-    $tblAlumnos.innerHTML = filas;
-}
-
-function guardarAlumno() {
-    let datos = {
-        id: getId(),
-        codigo: txtCodigoAlumno.value,
-        nombre: txtnombreAlumno.value,
-        direccion: txtDireccionAlumno.value,
-        email: txtEmailAlumno.value,
-        telefono: txtTelefonoAlumno.value
-    }, codigoDuplicado = buscarAlumno(datos.codigo);
-    if(codigoDuplicado){
-        alert("El codigo del alumno ya existe, "+ codigoDuplicado.nombre);
-        return; //Termina la ejecucion de la funcion
-    }
-    localStorage.setItem( datos.id, JSON.stringify(datos));
-    limpiarFormulario();
-}
-
-function getId(){
-    return localStorage.length + 1;
-}
-
-function limpiarFormulario(){
-    frmAlumnos.reset();
-}
-
-function buscarAlumno(codigo=''){
-    let n = localStorage.length;
-    for(let i = 0; i < n; i++){
-        let datos = JSON.parse(localStorage.getItem(i));
-        if(datos?.codigo && datos.codigo.trim().toUpperCase() == codigo.trim().toUpperCase()){
-            return datos;
+const { createApp } = Vue;
+// alt +shift + formatea el codigo *(Ordenar el codigo)
+createApp({
+    data(){
+        return{
+            alumno:{
+                codigo:"",
+                nombre:"",
+                direccion:"",
+                municipio:"",
+                departamento:"",
+                telefono:"",
+                fecha_nacimiento:"",
+                sexo:""
+            },
+            accion:'nuevo',
+            id:0,
+            buscar:'',
+            alumnos:[]
         }
+    },
+    methods:{
+        obtenerAlumnos(){
+            let n = localStorage.length;
+            this.alumnos = [];
+            for(let i=0; i<n; i++){
+                let key = localStorage.key(i);
+                if( !isNaN(key) ){
+                    let data = JSON.parse(localStorage.getItem(key));
+                    if( data.nombre.toUpperCase().includes(this.buscar.toUpperCase()) || 
+                        data.codigo.toUpperCase().includes(this.buscar.toUpperCase()) ){
+                        this.alumnos.push(data);
+                    }
+                }
+            }
+        },
+        eliminarAlumno(id, e){
+            e.stopPropagation();
+            if(confirm("¿Está seguro de eliminar el alumno?")){
+                localStorage.removeItem(id);
+                this.obtenerAlumnos();
+            }
+        },
+        modificarAlumno(alumno){
+            this.accion = 'modificar';
+            this.id = alumno.id;
+            this.alumno.codigo = alumno.codigo;
+            this.alumno.nombre = alumno.nombre;
+            this.alumno.direccion = alumno.direccion;
+            this.alumno.municipio = alumno.municipio;
+            this.alumno.departamento = alumno.departamento;
+            this.alumno.telefono = alumno.telefono;
+            this.alumno.fecha_nacimiento = alumno.fecha_nacimiento;
+            this.alumno.sexo = alumno.sexo;
+        },
+        guardarAlumno() {
+            let datos = {
+                id: this.accion=='modificar' ? this.id : this.getId(),
+                codigo: this.alumno.codigo,
+                nombre: this.alumno.nombre,
+                direccion: this.alumno.direccion,
+                municipio: this.alumno.municipio,
+                departamento: this.alumno.departamento,
+                telefono: this.alumno.telefono,
+                fecha_nacimiento: this.alumno.fecha_nacimiento,
+                sexo: this.alumno.sexo
+            }, codigoDuplicado = this.buscarAlumno(datos.codigo);
+            
+            if(codigoDuplicado && this.accion=='nuevo'){
+                alert("El codigo del alumno ya existe, "+ codigoDuplicado.nombre);
+                return;
+            }
+            localStorage.setItem( datos.id, JSON.stringify(datos));
+            this.limpiarFormulario();
+            this.obtenerAlumnos();
+        },
+        getId(){
+            return new Date().getTime();
+        },
+        limpiarFormulario(){
+            this.accion = 'nuevo';
+            this.id = 0;
+            this.alumno.codigo = '';
+            this.alumno.nombre = '';
+            this.alumno.direccion = '';
+            this.alumno.municipio = '';
+            this.alumno.departamento = '';
+            this.alumno.telefono = '';
+            this.alumno.fecha_nacimiento = '';
+            this.alumno.sexo = '';
+        },
+        buscarAlumno(codigo=''){
+            let n = localStorage.length;
+            for(let i = 0; i < n; i++){
+                let key = localStorage.key(i);
+                let datos = JSON.parse(localStorage.getItem(key));
+                if(datos?.codigo && datos.codigo.trim().toUpperCase() == codigo.trim().toUpperCase()){
+                    return datos;
+                }
+            }
+            return null;
+        }
+    },
+    mounted(){
+        this.obtenerAlumnos();
     }
-    return null;
-}
+}).mount("#app");
