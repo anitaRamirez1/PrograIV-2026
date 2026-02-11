@@ -1,107 +1,36 @@
-const { createApp } = Vue;
-// alt +shift + formatea el codigo *(Ordenar el codigo)
+const { createApp } = Vue,
+    Dexie = window.Dexie,
+    db = new Dexie("db_academica");
+
+
 createApp({
+    components:{
+        alumnos,
+        busqueda_alumnos
+    },
     data(){
         return{
-            alumno:{
-                codigo:"",
-                nombre:"",
-                direccion:"",
-                municipio:"",
-                departamento:"",
-                telefono:"",
-                fecha_nacimiento:"",
-                sexo:""
-            },
-            accion:'nuevo',
-            id:0,
-            buscar:'',
-            alumnos:[]
+            forms:{
+                alumnos:{mostrar:false},
+                busqueda_alumnos:{mostrar:false},
+                materias:{mostrar:false},
+                busqueda_materias:{mostrar:false},
+                docentes:{mostrar:false},
+                busqueda_docentes:{mostrar:false},
+                matriculas:{mostrar:false},
+                inscripciones:{mostrar:false}
+            }
         }
     },
     methods:{
-        obtenerAlumnos(){
-            let n = localStorage.length;
-            this.alumnos = [];
-            for(let i=0; i<n; i++){
-                let key = localStorage.key(i);
-                if( !isNaN(key) ){
-                    let data = JSON.parse(localStorage.getItem(key));
-                    if( data.nombre.toUpperCase().includes(this.buscar.toUpperCase()) || 
-                        data.codigo.toUpperCase().includes(this.buscar.toUpperCase()) ){
-                        this.alumnos.push(data);
-                    }
-                }
-            }
-        },
-        eliminarAlumno(id, e){
-            e.stopPropagation();
-            if(confirm("¿Está seguro de eliminar el alumno?")){
-                localStorage.removeItem(id);
-                this.obtenerAlumnos();
-            }
-        },
-        modificarAlumno(alumno){
-            this.accion = 'modificar';
-            this.id = alumno.id;
-            this.alumno.codigo = alumno.codigo;
-            this.alumno.nombre = alumno.nombre;
-            this.alumno.direccion = alumno.direccion;
-            this.alumno.municipio = alumno.municipio;
-            this.alumno.departamento = alumno.departamento;
-            this.alumno.telefono = alumno.telefono;
-            this.alumno.fecha_nacimiento = alumno.fecha_nacimiento;
-            this.alumno.sexo = alumno.sexo;
-        },
-        guardarAlumno() {
-            let datos = {
-                id: this.accion=='modificar' ? this.id : this.getId(),
-                codigo: this.alumno.codigo,
-                nombre: this.alumno.nombre,
-                direccion: this.alumno.direccion,
-                municipio: this.alumno.municipio,
-                departamento: this.alumno.departamento,
-                telefono: this.alumno.telefono,
-                fecha_nacimiento: this.alumno.fecha_nacimiento,
-                sexo: this.alumno.sexo
-            }, codigoDuplicado = this.buscarAlumno(datos.codigo);
-            
-            if(codigoDuplicado && this.accion=='nuevo'){
-                alert("El codigo del alumno ya existe, "+ codigoDuplicado.nombre);
-                return;
-            }
-            localStorage.setItem( datos.id, JSON.stringify(datos));
-            this.limpiarFormulario();
-            this.obtenerAlumnos();
-        },
-        getId(){
-            return new Date().getTime();
-        },
-        limpiarFormulario(){
-            this.accion = 'nuevo';
-            this.id = 0;
-            this.alumno.codigo = '';
-            this.alumno.nombre = '';
-            this.alumno.direccion = '';
-            this.alumno.municipio = '';
-            this.alumno.departamento = '';
-            this.alumno.telefono = '';
-            this.alumno.fecha_nacimiento = '';
-            this.alumno.sexo = '';
-        },
-        buscarAlumno(codigo=''){
-            let n = localStorage.length;
-            for(let i = 0; i < n; i++){
-                let key = localStorage.key(i);
-                let datos = JSON.parse(localStorage.getItem(key));
-                if(datos?.codigo && datos.codigo.trim().toUpperCase() == codigo.trim().toUpperCase()){
-                    return datos;
-                }
-            }
-            return null;
+        abrirVentana(ventana){
+            this.forms[ventana].mostrar = !this.forms[ventana].mostrar;
+            console.log(this.forms[ventana].mostrar, ventana);
         }
     },
     mounted(){
-        this.obtenerAlumnos();
+        db.version(1).stores({
+            "alumnos": "idAlumno, codigo, nombre, direccion, email, telefono"
+        });
     }
 }).mount("#app");
