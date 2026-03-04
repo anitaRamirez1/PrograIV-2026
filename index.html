@@ -100,10 +100,20 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Inicialización de Datos
+    // Configuración Inicial
     let db = JSON.parse(localStorage.getItem('db_codigo_estudiante')) || { autores: [], libros: [] };
 
-    // --- LÓGICA de autores  ---
+    // --- CONEXIÓN INDEXEDDB ---
+    let idb;
+    const request = indexedDB.open("db_codigo_estudiante", 1);
+    request.onupgradeneeded = (e) => {
+        idb = e.target.result;
+        if (!idb.objectStoreNames.contains("autores")) idb.createObjectStore("autores", { keyPath: "idAutor" });
+        if (!idb.objectStoreNames.contains("libros")) idb.createObjectStore("libros", { keyPath: "idLibro" });
+    };
+    request.onsuccess = (e) => { idb = e.target.result; syncToIndexedDB(); };
+
+    // --- LÓGICA DE AUTORES ---
     const fAutor = document.getElementById('formAutor');
     const searchAut = document.getElementById('searchAutor');
 
@@ -215,11 +225,21 @@
 
     function saveAndRender() {
         localStorage.setItem('db_codigo_estudiante', JSON.stringify(db));
+        syncToIndexedDB(); // Sincroniza con IndexedDB
         renderAutores();
         renderLibros();
     }
 
-    // Carga inicial
+    function syncToIndexedDB() {
+        if (!idb) return;
+        const tx = idb.transaction(["autores", "libros"], "readwrite");
+        const storeAut = tx.objectStore("autores");
+        const storeLib = tx.objectStore("libros");
+        storeAut.clear(); storeLib.clear();
+        db.autores.forEach(a => storeAut.put(a));
+        db.libros.forEach(l => storeLib.put(l));
+    }
+
     saveAndRender();
 </script>
 
