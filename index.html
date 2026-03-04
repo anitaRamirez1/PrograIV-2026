@@ -1,56 +1,227 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title></title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/alertify.min.css"/>
-    <!-- Default theme -->
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/themes/default.min.css"/>
-    <!-- Semantic UI theme -->
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/themes/semantic.min.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Bibliotecario - db_codigo_estudiante</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .nav-tabs .nav-link { color: #515961; font-weight: 600; }
+        .nav-tabs .nav-link.active { color: #0d6efd; border-bottom: 3px solid #0d6efd; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .btn-custom { border-radius: 8px; }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <nav class="navbar navbar-expand-lg bg-light">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="#">::.. SISTEMA ACADEMICO ..::</a>
-                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                    <div class="navbar-nav">
-                        <a class="nav-link" href="#" @click="abrirVentana('alumnos')">Alumnos</a>
-                        <a class="nav-link" href="#" @click="abrirVentana('materias')">Materias</a>
-                        <a class="nav-link" href="#" @click="abrirVentana('docentes')">Docentes</a>
-                        <a class="nav-link" href="#" @click="abrirVentana('matriculas')">Matriculas</a>
-                        <a class="nav-link" href="#" @click="abrirVentana('inscripciones')">Inscripciones</a>
+
+<div class="container py-5">
+    <h1 class="text-center mb-4 text-primary">Gestión de Biblioteca</h1>
+
+    <ul class="nav nav-tabs mb-4 justify-content-center" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="autor-tab" data-bs-toggle="tab" data-bs-target="#autor-pane" type="button">Autores</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="libro-tab" data-bs-toggle="tab" data-bs-target="#libro-pane" type="button">Libros</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+        
+        <div class="tab-pane fade show active" id="autor-pane">
+            <div class="card p-4 mb-4">
+                <h4>Registro de Autores</h4>
+                <form id="formAutor" class="row g-3">
+                    <input type="hidden" id="editIndexAutor">
+                    <div class="col-md-2"><label class="form-label">Código</label><input type="text" id="aut_codigo" class="form-control" required></div>
+                    <div class="col-md-4"><label class="form-label">Nombre</label><input type="text" id="aut_nombre" class="form-control" required></div>
+                    <div class="col-md-3"><label class="form-label">País</label><input type="text" id="aut_pais" class="form-control" required></div>
+                    <div class="col-md-3"><label class="form-label">Teléfono</label><input type="text" id="aut_telefono" class="form-control" required></div>
+                    <div class="col-12 text-end">
+                        <button type="reset" class="btn btn-light btn-custom">Limpiar</button>
+                        <button type="submit" id="btnSaveAutor" class="btn btn-primary btn-custom">Guardar Autor</button>
                     </div>
+                </form>
+            </div>
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Lista de Autores</h5>
+                    <input type="text" id="searchAutor" class="form-control w-25" placeholder="Buscar por Nombre o País...">
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr><th>Código</th><th>Nombre</th><th>País</th><th>Teléfono</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody id="tbodyAutor"></tbody>
+                    </table>
                 </div>
             </div>
-        </nav>
-        <div id="appSistema" class="container-fluid">
-            <alumnos @buscar='buscar("busqueda_alumnos","obtenerAlumnos")' :forms="forms" ref="alumnos" v-show="forms.alumnos.mostrar"></alumnos>
-            <busqueda_alumnos @modificar='modificar("alumnos","modificarAlumno", $event)' ref="busqueda_alumnos" v-show="forms.busqueda_alumnos.mostrar"></busqueda_alumnos>
-
-            <materias @buscar='buscar("busqueda_materias","obtenerMaterias")' :forms="forms" ref="materias" v-show="forms.materias.mostrar"></materias>
-            <busqueda_materias @modificar='modificar("materias","modificarMateria", $event)' ref="busqueda_materias" v-show="forms.busqueda_materias.mostrar"></busqueda_materias>
-
-            <docentes @buscar='buscar("busqueda_docentes","obtenerDocentes")' :forms="forms" ref="docentes" v-show="forms.docentes.mostrar"></docentes>
-            <busqueda_docentes @modificar='modificar("docentes","modificarDocente", $event)' ref="busqueda_docentes" v-show="forms.busqueda_docentes.mostrar"></busqueda_docentes>
         </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/alertify.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"
-        integrity="sha512-LuXLH9xON6/aAGYxi4Z1Dx8588Z80gY3iMmGtUlYmblUc1ulC/cGHuANXIvm8fnIWp5ShUk2MRBIWylGguXF9g=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="componentes/alumnos.js"></script>
-    <script src="componentes/busqueda_alumnos.js"></script>
-    <script src="componentes/materias.js"></script>
-    <script src="componentes/busqueda_materias.js"></script>
-    <script src="componentes/docentes.js"></script>
-    <script src="componentes/busqueda_docentes.js"></script>
-    <script src="main.js"></script>
+
+        <div class="tab-pane fade" id="libro-pane">
+            <div class="card p-4 mb-4">
+                <h4>Registro de Libro</h4>
+                <form id="formLibro" class="row g-3">
+                    <input type="hidden" id="editIndexLibro">
+                    <div class="col-md-3"><label class="form-label">ISBN</label><input type="text" id="lib_isbn" class="form-control" required></div>
+                    <div class="col-md-5"><label class="form-label">Título</label><input type="text" id="lib_titulo" class="form-control" required></div>
+                    <div class="col-md-4">
+                        <label class="form-label">Autor</label>
+                        <select id="lib_idAutor" class="form-select" required><option value="">Seleccione...</option></select>
+                    </div>
+                    <div class="col-md-4"><label class="form-label">Editorial</label><input type="text" id="lib_editorial" class="form-control" required></div>
+                    <div class="col-md-4"><label class="form-label">Edición</label><input type="text" id="lib_edicion" class="form-control" required></div>
+                    <div class="col-md-4 text-end align-self-end">
+                        <button type="reset" class="btn btn-light btn-custom">Limpiar</button>
+                        <button type="submit" id="btnSaveLibro" class="btn btn-success btn-custom">Guardar Libro</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Lista de los Libros</h5>
+                    <input type="text" id="searchLibro" class="form-control w-25" placeholder="Buscar por Título o ISBN...">
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr><th>ISBN</th><th>Título</th><th>Autor</th><th>Editorial</th><th>Edición</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody id="tbodyLibro"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div> 
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Inicialización de Datos
+    let db = JSON.parse(localStorage.getItem('db_codigo_estudiante')) || { autores: [], libros: [] };
+
+    // --- LÓGICA de autores  ---
+    const fAutor = document.getElementById('formAutor');
+    const searchAut = document.getElementById('searchAutor');
+
+    fAutor.onsubmit = (e) => {
+        e.preventDefault();
+        const idx = document.getElementById('editIndexAutor').value;
+        const data = {
+            idAutor: idx === "" ? Date.now() : db.autores[idx].idAutor,
+            codigo: document.getElementById('aut_codigo').value,
+            nombre: document.getElementById('aut_nombre').value,
+            pais: document.getElementById('aut_pais').value,
+            telefono: document.getElementById('aut_telefono').value
+        };
+        if (idx === "") db.autores.push(data); else db.autores[idx] = data;
+        saveAndRender();
+        fAutor.reset();
+        document.getElementById('editIndexAutor').value = "";
+    };
+
+    function renderAutores(filter = "") {
+        const tbody = document.getElementById('tbodyAutor');
+        tbody.innerHTML = "";
+        db.autores.filter(a => a.nombre.toLowerCase().includes(filter.toLowerCase()) || a.pais.toLowerCase().includes(filter.toLowerCase()))
+        .forEach((a, i) => {
+            tbody.innerHTML += `<tr><td>${a.codigo}</td><td>${a.nombre}</td><td>${a.pais}</td><td>${a.telefono}</td>
+                <td><button class="btn btn-sm btn-warning" onclick="editAutor(${i})">Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteAutor(${i})">Eliminar</button></td></tr>`;
+        });
+        updateAutorSelect();
+    }
+
+    window.editAutor = (i) => {
+        const a = db.autores[i];
+        document.getElementById('aut_codigo').value = a.codigo;
+        document.getElementById('aut_nombre').value = a.nombre;
+        document.getElementById('aut_pais').value = a.pais;
+        document.getElementById('aut_telefono').value = a.telefono;
+        document.getElementById('editIndexAutor').value = i;
+    };
+
+    window.deleteAutor = (i) => {
+        if(confirm("¿Eliminar autor? Esto podría afectar libros asociados.")) {
+            db.autores.splice(i, 1);
+            saveAndRender();
+        }
+    };
+
+    searchAut.oninput = () => renderAutores(searchAut.value);
+
+    // --- LÓGICA DE LIBROS ---
+    const fLibro = document.getElementById('formLibro');
+    const searchLib = document.getElementById('searchLibro');
+
+    fLibro.onsubmit = (e) => {
+        e.preventDefault();
+        const idx = document.getElementById('editIndexLibro').value;
+        const data = {
+            idLibro: idx === "" ? Date.now() : db.libros[idx].idLibro,
+            idAutor: document.getElementById('lib_idAutor').value,
+            isbn: document.getElementById('lib_isbn').value,
+            titulo: document.getElementById('lib_titulo').value,
+            editorial: document.getElementById('lib_editorial').value,
+            edicion: document.getElementById('lib_edicion').value
+        };
+        if (idx === "") db.libros.push(data); else db.libros[idx] = data;
+        saveAndRender();
+        fLibro.reset();
+        document.getElementById('editIndexLibro').value = "";
+    };
+
+    function renderLibros(filter = "") {
+        const tbody = document.getElementById('tbodyLibro');
+        tbody.innerHTML = "";
+        db.libros.filter(l => l.titulo.toLowerCase().includes(filter.toLowerCase()) || l.isbn.toLowerCase().includes(filter.toLowerCase()))
+        .forEach((l, i) => {
+            const autor = db.autores.find(a => a.idAutor == l.idAutor)?.nombre || "N/A";
+            tbody.innerHTML += `<tr><td>${l.isbn}</td><td>${l.titulo}</td><td>${autor}</td><td>${l.editorial}</td><td>${l.edicion}</td>
+                <td><button class="btn btn-sm btn-warning" onclick="editLibro(${i})">Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteLibro(${i})">Eliminar</button></td></tr>`;
+        });
+    }
+
+    window.editLibro = (i) => {
+        const l = db.libros[i];
+        document.getElementById('lib_isbn').value = l.isbn;
+        document.getElementById('lib_titulo').value = l.titulo;
+        document.getElementById('lib_idAutor').value = l.idAutor;
+        document.getElementById('lib_editorial').value = l.editorial;
+        document.getElementById('lib_edicion').value = l.edicion;
+        document.getElementById('editIndexLibro').value = i;
+    };
+
+    window.deleteLibro = (i) => {
+        if(confirm("¿Eliminar libro?")) { db.libros.splice(i, 1); saveAndRender(); }
+    };
+
+    searchLib.oninput = () => renderLibros(searchLib.value);
+
+    // --- UTILIDADES ---
+    function updateAutorSelect() {
+        const select = document.getElementById('lib_idAutor');
+        const valActual = select.value;
+        select.innerHTML = '<option value="">Seleccione...</option>';
+        db.autores.forEach(a => {
+            select.innerHTML += `<option value="${a.idAutor}">${a.nombre}</option>`;
+        });
+        select.value = valActual;
+    }
+
+    function saveAndRender() {
+        localStorage.setItem('db_codigo_estudiante', JSON.stringify(db));
+        renderAutores();
+        renderLibros();
+    }
+
+    // Carga inicial
+    saveAndRender();
+</script>
+
 </body>
 </html>
