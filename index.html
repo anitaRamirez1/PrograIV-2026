@@ -1,56 +1,404 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title></title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/alertify.min.css"/>
-    <!-- Default theme -->
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/themes/default.min.css"/>
-    <!-- Semantic UI theme -->
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/themes/semantic.min.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Académico</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- SQL.js -->
+    <script src="https://cdn.jsdelivr.net/npm/sql.js@1.8.0/dist/sql-wasm.js"></script>
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .nav-link {
+            color: rgba(255,255,255,.8);
+            transition: all 0.3s;
+        }
+        .nav-link:hover {
+            color: white;
+            background: rgba(255,255,255,.1);
+            transform: translateX(5px);
+        }
+        .nav-link.active {
+            color: white;
+            background: rgba(255,255,255,.2);
+        }
+        .content-card {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.1);
+            border: none;
+        }
+        .form-control:focus, .btn:focus {
+            box-shadow: none;
+            border-color: #667eea;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            transition: transform 0.3s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <nav class="navbar navbar-expand-lg bg-light">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="#">::.. SISTEMA ACADEMICO ..::</a>
-                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                    <div class="navbar-nav">
-                        <a class="nav-link" href="#" @click="abrirVentana('alumnos')">Alumnos</a>
-                        <a class="nav-link" href="#" @click="abrirVentana('materias')">Materias</a>
-                        <a class="nav-link" href="#" @click="abrirVentana('docentes')">Docentes</a>
-                        <a class="nav-link" href="#" @click="abrirVentana('matriculas')">Matriculas</a>
-                        <a class="nav-link" href="#" @click="abrirVentana('inscripciones')">Inscripciones</a>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 px-0">
+                <div class="sidebar">
+                    <div class="text-center py-4">
+                        <i class="bi bi-mortarboard-fill text-white" style="font-size: 3rem;"></i>
+                        <h4 class="text-white mt-2">Sistema Académico</h4>
+                    </div>
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="#" id="btnAlumnos">
+                            <i class="bi bi-people-fill me-2"></i>Alumnos
+                        </a>
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-book-fill me-2"></i>Cursos
+                        </a>
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-person-badge-fill me-2"></i>Profesores
+                        </a>
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-calendar-check-fill me-2"></i>Matrículas
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10">
+                <div class="container-fluid py-4">
+                    <!-- Header -->
+                    <div class="row mb-4">
+                        <div class="col">
+                            <h2 class="fw-bold" style="color: #667eea;">
+                                <i class="bi bi-people-fill me-2"></i>Gestión de Alumnos
+                            </h2>
+                            <p class="text-muted">Administra la información de los estudiantes</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Card -->
+                    <div class="row mb-4">
+                        <div class="col">
+                            <div class="card content-card">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-4">
+                                        <i class="bi bi-person-plus-fill me-2" style="color: #667eea;"></i>
+                                        Registrar Nuevo Alumno
+                                    </h5>
+                                    <form id="alumnoForm">
+                                        <div class="row g-3">
+                                            <div class="col-md-3">
+                                                <label class="form-label">Código</label>
+                                                <input type="text" class="form-control" id="codigo" required>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Nombre Completo</label>
+                                                <input type="text" class="form-control" id="nombre" required>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Dirección</label>
+                                                <input type="text" class="form-control" id="direccion" required>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Teléfono</label>
+                                                <input type="tel" class="form-control" id="telefono" required>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-4">
+                                            <div class="col">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="bi bi-save me-2"></i>Guardar Alumno
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary ms-2" onclick="limpiarFormulario()">
+                                                    <i class="bi bi-eraser me-2"></i>Limpiar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Table Card -->
+                    <div class="row">
+                        <div class="col">
+                            <div class="card content-card">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-4">
+                                        <i class="bi bi-table me-2" style="color: #667eea;"></i>
+                                        Lista de Alumnos Registrados
+                                    </h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Código</th>
+                                                    <th>Nombre</th>
+                                                    <th>Dirección</th>
+                                                    <th>Teléfono</th>
+                                                    <th>Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tablaAlumnos">
+                                                <!-- Los datos se cargarán aquí dinámicamente -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </nav>
-        <div id="appSistema" class="container-fluid">
-            <alumnos @buscar='buscar("busqueda_alumnos","obtenerAlumnos")' :forms="forms" ref="alumnos" v-show="forms.alumnos.mostrar"></alumnos>
-            <busqueda_alumnos @modificar='modificar("alumnos","modificarAlumno", $event)' ref="busqueda_alumnos" v-show="forms.busqueda_alumnos.mostrar"></busqueda_alumnos>
-
-            <materias @buscar='buscar("busqueda_materias","obtenerMaterias")' :forms="forms" ref="materias" v-show="forms.materias.mostrar"></materias>
-            <busqueda_materias @modificar='modificar("materias","modificarMateria", $event)' ref="busqueda_materias" v-show="forms.busqueda_materias.mostrar"></busqueda_materias>
-
-            <docentes @buscar='buscar("busqueda_docentes","obtenerDocentes")' :forms="forms" ref="docentes" v-show="forms.docentes.mostrar"></docentes>
-            <busqueda_docentes @modificar='modificar("docentes","modificarDocente", $event)' ref="busqueda_docentes" v-show="forms.busqueda_docentes.mostrar"></busqueda_docentes>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/alertify.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/4.2.0/dexie.min.js"
-        integrity="sha512-LuXLH9xON6/aAGYxi4Z1Dx8588Z80gY3iMmGtUlYmblUc1ulC/cGHuANXIvm8fnIWp5ShUk2MRBIWylGguXF9g=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="componentes/alumnos.js"></script>
-    <script src="componentes/busqueda_alumnos.js"></script>
-    <script src="componentes/materias.js"></script>
-    <script src="componentes/busqueda_materias.js"></script>
-    <script src="componentes/docentes.js"></script>
-    <script src="componentes/busqueda_docentes.js"></script>
-    <script src="main.js"></script>
+
+    <!-- Toast para notificaciones -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="bi bi-info-circle-fill me-2" style="color: #667eea;"></i>
+                <strong class="me-auto">Sistema Académico</strong>
+                <small>Ahora</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Operación exitosa
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        let db = null;
+        let SQL = null;
+        let toast;
+
+        // Inicializar la base de datos
+        async function initDatabase() {
+            try {
+                SQL = await initSqlJs({
+                    locateFile: file => `https://cdn.jsdelivr.net/npm/sql.js@1.8.0/dist/sql-wasm.wasm`
+                });
+                
+                // Crear o abrir base de datos
+                db = new SQL.Database();
+                
+                // Crear tabla de alumnos
+                db.run(`
+                    CREATE TABLE IF NOT EXISTS alumnos (
+                        codigo TEXT PRIMARY KEY,
+                        nombre TEXT NOT NULL,
+                        direccion TEXT NOT NULL,
+                        telefono TEXT NOT NULL
+                    );
+                `);
+                
+                console.log("Base de datos inicializada correctamente");
+                cargarAlumnos();
+                
+            } catch (error) {
+                console.error("Error al inicializar la base de datos:", error);
+                mostrarToast("Error al inicializar la base de datos", "error");
+            }
+        }
+
+        // Guardar alumno
+        function guardarAlumno(event) {
+            event.preventDefault();
+            
+            const codigo = document.getElementById('codigo').value.trim();
+            const nombre = document.getElementById('nombre').value.trim();
+            const direccion = document.getElementById('direccion').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            
+            if (!codigo || !nombre || !direccion || !telefono) {
+                mostrarToast("Todos los campos son obligatorios", "error");
+                return;
+            }
+            
+            try {
+                // Verificar si el código ya existe
+                const checkStmt = db.prepare("SELECT codigo FROM alumnos WHERE codigo = ?");
+                checkStmt.bind([codigo]);
+                const exists = checkStmt.step();
+                checkStmt.free();
+                
+                if (exists) {
+                    mostrarToast("Ya existe un alumno con ese código", "error");
+                    return;
+                }
+                
+                // Insertar el nuevo alumno
+                const stmt = db.prepare("INSERT INTO alumnos (codigo, nombre, direccion, telefono) VALUES (?, ?, ?, ?)");
+                stmt.run([codigo, nombre, direccion, telefono]);
+                stmt.free();
+                
+                mostrarToast("Alumno guardado exitosamente", "success");
+                limpiarFormulario();
+                cargarAlumnos();
+                
+            } catch (error) {
+                console.error("Error al guardar:", error);
+                mostrarToast("Error al guardar el alumno", "error");
+            }
+        }
+
+        // Cargar alumnos en la tabla
+        function cargarAlumnos() {
+            try {
+                const result = db.exec("SELECT * FROM alumnos ORDER BY nombre");
+                const tbody = document.getElementById('tablaAlumnos');
+                
+                if (result.length === 0 || result[0].values.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No hay alumnos registrados</td></tr>';
+                    return;
+                }
+                
+                const alumnos = result[0].values;
+                let html = '';
+                
+                alumnos.forEach(alumno => {
+                    html += `
+                        <tr>
+                            <td><span class="badge bg-light text-dark">${alumno[0]}</span></td>
+                            <td class="fw-bold">${alumno[1]}</td>
+                            <td>${alumno[2]}</td>
+                            <td>${alumno[3]}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editarAlumno('${alumno[0]}')" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarAlumno('${alumno[0]}')" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                                 <button type="button" class="btn btn-info ms-2" onclick="verDB()">
+                                  <i class="bi bi-database"></i> Ver DB
+                                </button>
+                        </tr>
+                    `;
+                });
+                
+                tbody.innerHTML = html;
+                
+            } catch (error) {
+                console.error("Error al cargar alumnos:", error);
+            }
+        }
+
+        // Editar alumno
+        function editarAlumno(codigo) {
+            try {
+                const stmt = db.prepare("SELECT * FROM alumnos WHERE codigo = ?");
+                stmt.bind([codigo]);
+                
+                if (stmt.step()) {
+                    const alumno = stmt.get();
+                    document.getElementById('codigo').value = alumno[0];
+                    document.getElementById('nombre').value = alumno[1];
+                    document.getElementById('direccion').value = alumno[2];
+                    document.getElementById('telefono').value = alumno[3];
+                    
+                    // Deshabilitar el campo código para evitar cambios
+                    document.getElementById('codigo').disabled = true;
+                    
+                    mostrarToast("Puede editar los datos del alumno", "info");
+                }
+                
+                stmt.free();
+                
+            } catch (error) {
+                console.error("Error al cargar alumno para editar:", error);
+                mostrarToast("Error al cargar el alumno", "error");
+            }
+        }
+
+
+
+        // Eliminar alumno
+        function eliminarAlumno(codigo) {
+            if (confirm("¿Está seguro de eliminar este alumno?")) {
+                try {
+                    const stmt = db.prepare("DELETE FROM alumnos WHERE codigo = ?");
+                    stmt.run([codigo]);
+                    stmt.free();
+                    
+                    mostrarToast("Alumno eliminado exitosamente", "success");
+                    cargarAlumnos();
+                    
+                    // Si el alumno eliminado estaba en edición, limpiar formulario
+                    if (document.getElementById('codigo').value === codigo) {
+                        limpiarFormulario();
+                    }
+                    
+                } catch (error) {
+                    console.error("Error al eliminar:", error);
+                    mostrarToast("Error al eliminar el alumno", "error");
+                }
+            }
+        }
+
+        // Limpiar formulario
+        function limpiarFormulario() {
+            document.getElementById('alumnoForm').reset();
+            document.getElementById('codigo').disabled = false;
+        }
+
+        // Mostrar toast
+        function mostrarToast(mensaje, tipo = "success") {
+            const toastElement = document.getElementById('liveToast');
+            const toastBody = document.getElementById('toastMessage');
+            const toastHeader = toastElement.querySelector('.toast-header i');
+            
+            toastBody.textContent = mensaje;
+            
+            if (tipo === "success") {
+                toastHeader.style.color = "#28a745";
+            } else if (tipo === "error") {
+                toastHeader.style.color = "#dc3545";
+            } else {
+                toastHeader.style.color = "#667eea";
+            }
+            
+            toast.show();
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initDatabase();
+            
+            toast = new bootstrap.Toast(document.getElementById('liveToast'), {
+                autohide: true,
+                delay: 3000
+            });
+            
+            document.getElementById('alumnoForm').addEventListener('submit', guardarAlumno);
+            
+            document.getElementById('btnAlumnos').addEventListener('click', (e) => {
+                e.preventDefault();
+                limpiarFormulario();
+                cargarAlumnos();
+            });
+        });
+    </script>
 </body>
 </html>
