@@ -23,7 +23,7 @@ const docentes = {
         },
         modificarDocente(docente){
             this.accion = 'modificar';
-            this.idDocente = docente.idDocente;
+            this.idDocente = docente.Id_Docentes || docente.idDocente;
             this.docente.codigo = docente.codigo;
             this.docente.nombre = docente.nombre;
             this.docente.direccion = docente.direccion;
@@ -41,20 +41,28 @@ const docentes = {
                 telefono: this.docente.telefono,
                 escalafon: this.docente.escalafon
             };
-            this.buscar = datos.codigo;
-            //await this.obtenerDocentes();
-
-            if(this.data_docentes.length > 0 && this.accion=='nuevo'){
-                alertify.error(`El codigo del docente ya existe, ${this.data_docentes[0].nombre}`);
-                return; //Termina la ejecucion de la funcion
-            }
+            
+            // Guardar en IndexedDB
             db.docentes.put(datos);
-            this.limpiarFormulario();
-            alertify.success(`${datos.nombre} guardado correctamente`);
-            //this.obtenerDocentes();
+
+            // Sincronizar con el servidor
+            fetch(`private/modulos/docentes/docentes.php?accion=${this.accion}&docentes=${JSON.stringify(datos)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if(data == true || data.msg == 'ok') {
+                        alertify.success(`${datos.nombre} guardado correctamente`);
+                        this.limpiarFormulario();
+                    } else {
+                        alertify.error(`Error al sincronizar con el servidor: ${JSON.stringify(data)}`);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alertify.error("Error de conexión con el servidor");
+                });
         },
         getId(){
-            return new Date().getTime();
+            return typeof uuid !== 'undefined' ? uuid.v4() : new Date().getTime();
         },
         limpiarFormulario(){
             this.accion = 'nuevo';
@@ -68,75 +76,68 @@ const docentes = {
         },
     },
     template: `
-        <div class="row">
-            <div class="col-6">
+        <div v-draggable class="card text-bg-dark mb-3" 
+             style="position: absolute; z-index: 1000; width: 600px; top: 50px; left: 50px;">
+            
+            <div class="card-header d-flex justify-content-between align-items-center" style="cursor: move;">
+                <span>REGISTRO DE DOCENTES</span>
+                <button type="button" 
+                        class="btn-close btn-close-white" 
+                        @click="forms.docentes.mostrar=false" 
+                        aria-label="Close">
+                </button>
+            </div>
+
+            <div class="card-body">
                 <form id="frmDocentes" @submit.prevent="guardarDocente" @reset.prevent="limpiarFormulario">
-                    <div class="card text-bg-dark mb-3" style="max-width: 36rem;">
-                        <div class="card-header">REGISTRO DE DOCENTES</div>
-                        <div class="card-body">
-                            <div class="row p-1">
-                                <div class="col-3">
-                                    CODIGO:
-                                </div>
-                                <div class="col-3">
-                                    <input placeholder="codigo" required v-model="docente.codigo" type="text" class="form-control">
-                                </div>
-                            </div>
-                            <div class="row p-1">
-                                <div class="col-3">
-                                    NOMBRE:
-                                </div>
-                                <div class="col-6">
-                                    <input placeholder="nombre" required v-model="docente.nombre" type="text" class="form-control">
-                                </div>
-                            </div>
-                            <div class="row p-1">
-                                <div class="col-3">
-                                    DIRECCION:
-                                </div>
-                                <div class="col-9">
-                                    <input placeholder="direccion" required v-model="docente.direccion" type="text" class="form-control">
-                                </div>
-                            </div>
-                            <div class="row p-1">
-                                <div class="col-3">
-                                    EMAIL:
-                                </div>
-                                <div class="col-6">
-                                    <input placeholder="email" required v-model="docente.email" type="text" class="form-control">
-                                </div>
-                            </div>
-                            <div class="row p-1">
-                                <div class="col-3">
-                                    TELEFONO:
-                                </div>
-                                <div class="col-4">
-                                    <input placeholder="telefono" required v-model="docente.telefono" type="text" class="form-control">
-                                </div>
-                            </div>
-                            <div class="row p-1">
-                                <div class="col-3">
-                                    ESCALAFON:
-                                </div>
-                                <div class="col-4">
-                                    <select required title="Seleccione un escalafon" v-model="docente.escalafon" class="form-select">
-                                        <option value="tecnico">Tecnico</option>
-                                        <option value="profesor">Profesor</option>
-                                        <option value="ingeniero">Licenciado/Ingeniero</option>
-                                        <option value="maestria">Maestria</option>
-                                        <option value="doctor">Doctor</option>
-                                    </select>
-                                </div>
-                            </div>
+                    <div class="row p-1">
+                        <div class="col-3">CODIGO:</div>
+                        <div class="col-4">
+                            <input placeholder="codigo" required v-model="docente.codigo" type="text" class="form-control form-control-sm">
                         </div>
-                        <div class="card-footer">
-                            <div class="row">
-                                <div class="col text-center">
-                                    <button type="submit" id="btnGuardarDocente" class="btn btn-primary">GUARDAR</button>
-                                    <button type="reset" id="btnCancelarDocente" class="btn btn-warning">NUEVO</button>
-                                    <button type="button" @click="buscarDocente" id="btnBuscarDocente" class="btn btn-success">BUSCAR</button>
-                                </div>
-                            </div>
+                    </div>
+                    <div class="row p-1">
+                        <div class="col-3">NOMBRE:</div>
+                        <div class="col-9">
+                            <input placeholder="nombre" required v-model="docente.nombre" type="text" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                    <div class="row p-1">
+                        <div class="col-3">DIRECCION:</div>
+                        <div class="col-9">
+                            <input placeholder="direccion" required v-model="docente.direccion" type="text" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                    <div class="row p-1">
+                        <div class="col-3">EMAIL:</div>
+                        <div class="col-9">
+                            <input placeholder="email" required v-model="docente.email" type="text" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                    <div class="row p-1">
+                        <div class="col-3">TELEFONO:</div>
+                        <div class="col-4">
+                            <input placeholder="telefono" required v-model="docente.telefono" type="text" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                    <div class="row p-1">
+                        <div class="col-3">ESCALAFON:</div>
+                        <div class="col-6">
+                            <select required v-model="docente.escalafon" class="form-select form-select-sm">
+                                <option value="tecnico">Tecnico</option>
+                                <option value="profesor">Profesor</option>
+                                <option value="ingeniero">Licenciado/Ingeniero</option>
+                                <option value="maestria">Maestria</option>
+                                <option value="doctor">Doctor</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col text-center">
+                            <button type="submit" class="btn btn-primary">GUARDAR</button>
+                            <button type="reset" class="btn btn-warning">NUEVO</button>
+                            <button type="button" @click="buscarDocente" class="btn btn-success">BUSCAR</button>
                         </div>
                     </div>
                 </form>
