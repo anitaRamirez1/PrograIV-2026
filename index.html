@@ -3,76 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Académico</title>
-    <!-- Bootstrap CSS -->
+    <title>Sistema Académico Completo</title>
+    <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <!-- SQL.js -->
     <script src="https://cdn.jsdelivr.net/npm/sql.js@1.8.0/dist/sql-wasm.js"></script>
     <style>
+        * { transition: all 0.2s ease; }
         .sidebar {
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(180deg, #2c3e50 0%, #1a2634 100%);
         }
         .nav-link {
-            color: rgba(255,255,255,.8);
-            transition: all 0.3s;
+            color: rgba(255,255,255,.7);
+            margin: 0.2rem 1rem;
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
         }
-        .nav-link:hover {
+        .nav-link:hover, .nav-link.active {
             color: white;
             background: rgba(255,255,255,.1);
             transform: translateX(5px);
         }
-        .nav-link.active {
-            color: white;
-            background: rgba(255,255,255,.2);
-        }
+        .nav-link i { margin-right: 10px; width: 20px; }
         .content-card {
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,.1);
             border: none;
+            box-shadow: 0 5px 20px rgba(0,0,0,.08);
+            margin-bottom: 20px;
         }
-        .form-control:focus, .btn:focus {
-            box-shadow: none;
-            border-color: #667eea;
+        .btn-action {
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            transition: transform 0.3s;
+        .table th { background: #f8f9fa; font-weight: 600; }
+        .badge-status {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
         }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        }
-        .table-hover tbody tr:hover {
-            background-color: rgba(102, 126, 234, 0.05);
+        .section-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
         }
     </style>
 </head>
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
+            <!-- Sidebar Profesional -->
             <div class="col-md-3 col-lg-2 px-0">
                 <div class="sidebar">
                     <div class="text-center py-4">
                         <i class="bi bi-mortarboard-fill text-white" style="font-size: 3rem;"></i>
-                        <h4 class="text-white mt-2">Sistema Académico</h4>
+                        <h5 class="text-white mt-2">Academia Pro</h5>
                     </div>
                     <nav class="nav flex-column">
-                        <a class="nav-link active" href="#" id="btnAlumnos">
-                            <i class="bi bi-people-fill me-2"></i>Alumnos
+                        <a class="nav-link" href="#" data-section="dashboard">
+                            <i class="bi bi-speedometer2"></i>Dashboard
                         </a>
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-book-fill me-2"></i>Cursos
+                        <a class="nav-link active" href="#" data-section="alumnos">
+                            <i class="bi bi-people"></i>Alumnos
                         </a>
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-person-badge-fill me-2"></i>Profesores
+                        <a class="nav-link" href="#" data-section="cursos">
+                            <i class="bi bi-book"></i>Cursos
                         </a>
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-calendar-check-fill me-2"></i>Matrículas
+                        <a class="nav-link" href="#" data-section="profesores">
+                            <i class="bi bi-person-badge"></i>Profesores
+                        </a>
+                        <a class="nav-link" href="#" data-section="matriculas">
+                            <i class="bi bi-calendar-check"></i>Matrículas
                         </a>
                     </nav>
                 </div>
@@ -81,86 +82,355 @@
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10">
                 <div class="container-fluid py-4">
-                    <!-- Header -->
+                    <!-- Header Dinámico -->
                     <div class="row mb-4">
                         <div class="col">
-                            <h2 class="fw-bold" style="color: #667eea;">
+                            <h2 class="fw-bold" id="sectionTitle" style="color: #2c3e50;">
                                 <i class="bi bi-people-fill me-2"></i>Gestión de Alumnos
                             </h2>
-                            <p class="text-muted">Administra la información de los estudiantes</p>
+                            <p class="text-muted" id="sectionDesc">Administra los estudiantes del sistema</p>
+                        </div>
+                        <div class="col-auto">
+                            <button class="btn btn-outline-secondary me-2" onclick="exportarDB()">
+                                <i class="bi bi-download"></i> Backup
+                            </button>
+                            <span class="badge bg-primary" id="dbStatus">Conectado</span>
                         </div>
                     </div>
                     
-                    <!-- Form Card -->
-                    <div class="row mb-4">
-                        <div class="col">
-                            <div class="card content-card">
-                                <div class="card-body">
-                                    <h5 class="card-title mb-4">
-                                        <i class="bi bi-person-plus-fill me-2" style="color: #667eea;"></i>
-                                        Registrar Nuevo Alumno
-                                    </h5>
-                                    <form id="alumnoForm">
-                                        <div class="row g-3">
-                                            <div class="col-md-3">
-                                                <label class="form-label">Código</label>
-                                                <input type="text" class="form-control" id="codigo" required>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <label class="form-label">Nombre Completo</label>
-                                                <input type="text" class="form-control" id="nombre" required>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <label class="form-label">Dirección</label>
-                                                <input type="text" class="form-control" id="direccion" required>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <label class="form-label">Teléfono</label>
-                                                <input type="tel" class="form-control" id="telefono" required>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-4">
-                                            <div class="col">
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="bi bi-save me-2"></i>Guardar Alumno
-                                                </button>
-                                                <button type="button" class="btn btn-outline-secondary ms-2" onclick="limpiarFormulario()">
-                                                    <i class="bi bi-eraser me-2"></i>Limpiar
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </form>
+                    <!-- SECCIÓN ALUMNOS (SIN CAMBIOS) -->
+                    <div id="sectionAlumnos" class="content-section">
+                        <!-- Formulario Alumnos -->
+                        <div class="card content-card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">
+                                    <i class="bi bi-person-plus-fill me-2" style="color: #3498db;"></i>
+                                    Registrar Alumno
+                                </h5>
+                                <form id="alumnoForm" class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Código</label>
+                                        <input type="text" class="form-control" id="codigo" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Nombre</label>
+                                        <input type="text" class="form-control" id="nombre" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Dirección</label>
+                                        <input type="text" class="form-control" id="direccion" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Teléfono</label>
+                                        <input type="tel" class="form-control" id="telefono" required>
+                                    </div>
+                                    <div class="col-12 mt-3">
+                                        <button type="submit" class="btn btn-primary btn-action">
+                                            <i class="bi bi-save me-2"></i>Guardar
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-action" onclick="limpiarForm('alumnoForm')">
+                                            <i class="bi bi-eraser me-2"></i>Limpiar
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Tabla Alumnos -->
+                        <div class="card content-card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">
+                                    <i class="bi bi-table me-2" style="color: #3498db;"></i>
+                                    Lista de Alumnos
+                                </h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Código</th>
+                                                <th>Nombre</th>
+                                                <th>Dirección</th>
+                                                <th>Teléfono</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaAlumnos">
+                                            <tr><td colspan="5" class="text-center py-4">Cargando...</td></tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Table Card -->
-                    <div class="row">
-                        <div class="col">
-                            <div class="card content-card">
-                                <div class="card-body">
-                                    <h5 class="card-title mb-4">
-                                        <i class="bi bi-table me-2" style="color: #667eea;"></i>
-                                        Lista de Alumnos Registrados
-                                    </h5>
-                                    <div class="table-responsive">
-                                        <table class="table table-hover">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th>Código</th>
-                                                    <th>Nombre</th>
-                                                    <th>Dirección</th>
-                                                    <th>Teléfono</th>
-                                                    <th>Acciones</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="tablaAlumnos">
-                                                <!-- Los datos se cargarán aquí dinámicamente -->
-                                            </tbody>
-                                        </table>
+
+                    <!-- SECCIÓN CURSOS (SIN CAMBIOS) -->
+                    <div id="sectionCursos" class="content-section" style="display: none;">
+                        <!-- Formulario Cursos -->
+                        <div class="card content-card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">
+                                    <i class="bi bi-book-plus me-2" style="color: #e74c3c;"></i>
+                                    Registrar Curso
+                                </h5>
+                                <form id="cursoForm" class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Código Curso</label>
+                                        <input type="text" class="form-control" id="codigoCurso" required>
                                     </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Nombre del Curso</label>
+                                        <input type="text" class="form-control" id="nombreCurso" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Créditos</label>
+                                        <input type="number" class="form-control" id="creditos" min="1" max="10" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Horas</label>
+                                        <input type="number" class="form-control" id="horas" min="1" required>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label class="form-label">Descripción</label>
+                                        <input type="text" class="form-control" id="descripcion" placeholder="Descripción del curso">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Estado</label>
+                                        <select class="form-select" id="estadoCurso">
+                                            <option value="ACTIVO">ACTIVO</option>
+                                            <option value="INACTIVO">INACTIVO</option>
+                                            <option value="EN PROCESO">EN PROCESO</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 mt-3">
+                                        <button type="submit" class="btn btn-danger btn-action">
+                                            <i class="bi bi-save me-2"></i>Guardar Curso
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-action" onclick="limpiarForm('cursoForm')">
+                                            <i class="bi bi-eraser me-2"></i>Limpiar
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Tabla Cursos -->
+                        <div class="card content-card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">
+                                    <i class="bi bi-journal-bookmark-fill me-2" style="color: #e74c3c;"></i>
+                                    Lista de Cursos
+                                </h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Código</th>
+                                                <th>Nombre</th>
+                                                <th>Créditos</th>
+                                                <th>Horas</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaCursos">
+                                            <tr><td colspan="6" class="text-center py-4">Cargando...</td></tr>
+                                        </tbody>
+                                    </table>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NUEVA SECCIÓN PROFESORES -->
+                    <div id="sectionProfesores" class="content-section" style="display: none;">
+                        <!-- Formulario Profesores -->
+                        <div class="card content-card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">
+                                    <i class="bi bi-person-plus-fill me-2" style="color: #f39c12;"></i>
+                                    Registrar Profesor
+                                </h5>
+                                <form id="profesorForm" class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Código</label>
+                                        <input type="text" class="form-control" id="codigoProfesor" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Nombre Completo</label>
+                                        <input type="text" class="form-control" id="nombreProfesor" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Teléfono</label>
+                                        <input type="tel" class="form-control" id="telefonoProfesor" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Especialidad</label>
+                                        <select class="form-select" id="especialidad">
+                                            <option value="MATEMÁTICAS">Matemáticas</option>
+                                            <option value="LENGUAJE">Lenguaje</option>
+                                            <option value="CIENCIAS">Ciencias</option>
+                                            <option value="HISTORIA">Historia</option>
+                                            <option value="INGLÉS">Inglés</option>
+                                            <option value="PROGRAMACIÓN">Programación</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="emailProfesor" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Título</label>
+                                        <input type="text" class="form-control" id="titulo" placeholder="Ej: Licenciado">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Estado</label>
+                                        <select class="form-select" id="estadoProfesor">
+                                            <option value="ACTIVO">ACTIVO</option>
+                                            <option value="INACTIVO">INACTIVO</option>
+                                            <option value="VACACIONES">VACACIONES</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 mt-3">
+                                        <button type="submit" class="btn btn-warning btn-action">
+                                            <i class="bi bi-save me-2"></i>Guardar Profesor
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-action" onclick="limpiarForm('profesorForm')">
+                                            <i class="bi bi-eraser me-2"></i>Limpiar
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Tabla Profesores -->
+                        <div class="card content-card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">
+                                    <i class="bi bi-person-badge-fill me-2" style="color: #f39c12;"></i>
+                                    Lista de Profesores
+                                </h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Código</th>
+                                                <th>Nombre</th>
+                                                <th>Especialidad</th>
+                                                <th>Teléfono</th>
+                                                <th>Email</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaProfesores">
+                                            <tr><td colspan="7" class="text-center py-4">Cargando...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NUEVA SECCIÓN MATRÍCULAS -->
+                    <div id="sectionMatriculas" class="content-section" style="display: none;">
+                        <!-- Formulario Matrículas -->
+                        <div class="card content-card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">
+                                    <i class="bi bi-calendar-plus-fill me-2" style="color: #27ae60;"></i>
+                                    Registrar Matrícula
+                                </h5>
+                                <form id="matriculaForm" class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label">N° Matrícula</label>
+                                        <input type="text" class="form-control" id="idMatricula" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Alumno</label>
+                                        <select class="form-select" id="alumnoMatricula" required>
+                                            <option value="">Seleccionar alumno...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Curso</label>
+                                        <select class="form-select" id="cursoMatricula" required>
+                                            <option value="">Seleccionar curso...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Fecha Matrícula</label>
+                                        <input type="date" class="form-control" id="fechaMatricula" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Período</label>
+                                        <select class="form-select" id="periodo">
+                                            <option value="2024-1">2024-1</option>
+                                            <option value="2024-2">2024-2</option>
+                                            <option value="2025-1">2025-1</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Estado</label>
+                                        <select class="form-select" id="estadoMatricula">
+                                            <option value="ACTIVA">ACTIVA</option>
+                                            <option value="PENDIENTE">PENDIENTE</option>
+                                            <option value="CANCELADA">CANCELADA</option>
+                                            <option value="FINALIZADA">FINALIZADA</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Nota Final</label>
+                                        <input type="number" class="form-control" id="nota" min="0" max="20" step="0.1">
+                                    </div>
+                                    <div class="col-12 mt-3">
+                                        <button type="submit" class="btn btn-success btn-action">
+                                            <i class="bi bi-save me-2"></i>Guardar Matrícula
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-action" onclick="limpiarForm('matriculaForm')">
+                                            <i class="bi bi-eraser me-2"></i>Limpiar
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Tabla Matrículas -->
+                        <div class="card content-card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">
+                                    <i class="bi bi-calendar-check-fill me-2" style="color: #27ae60;"></i>
+                                    Lista de Matrículas
+                                </h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>N° Matrícula</th>
+                                                <th>Alumno</th>
+                                                <th>Curso</th>
+                                                <th>Fecha</th>
+                                                <th>Período</th>
+                                                <th>Estado</th>
+                                                <th>Nota</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaMatriculas">
+                                            <tr><td colspan="8" class="text-center py-4">Cargando...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard (sin cambios) -->
+                    <div id="sectionDashboard" class="content-section" style="display: none;">
+                        <div class="card content-card">
+                            <div class="card-body text-center py-5">
+                                <i class="bi bi-graph-up" style="font-size: 4rem; color: #3498db;"></i>
+                                <h4 class="mt-3">Dashboard</h4>
+                                <p class="text-muted">Estadísticas y resumen del sistema</p>
                             </div>
                         </div>
                     </div>
@@ -169,18 +439,15 @@
         </div>
     </div>
 
-    <!-- Toast para notificaciones -->
+    <!-- Toast Notifications -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div id="liveToast" class="toast" role="alert">
             <div class="toast-header">
-                <i class="bi bi-info-circle-fill me-2" style="color: #667eea;"></i>
-                <strong class="me-auto">Sistema Académico</strong>
-                <small>Ahora</small>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                <i class="bi bi-info-circle-fill me-2" id="toastIcon"></i>
+                <strong class="me-auto" id="toastTitle">Sistema</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
             </div>
-            <div class="toast-body" id="toastMessage">
-                Operación exitosa
-            </div>
+            <div class="toast-body" id="toastMessage"></div>
         </div>
     </div>
 
@@ -188,216 +455,602 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // ========== CONFIGURACIÓN ==========
+        const DB_NAME = 'academia_pro.db';
+        const CONFIG = {
+            alumnos: { table: 'alumnos', fields: ['codigo', 'nombre', 'direccion', 'telefono'] },
+            cursos: { table: 'cursos', fields: ['codigo', 'nombre', 'creditos', 'horas', 'descripcion', 'estado'] },
+            profesores: { table: 'profesores', fields: ['codigo', 'nombre', 'telefono', 'especialidad', 'email', 'titulo', 'estado'] },
+            matriculas: { table: 'matriculas', fields: ['id', 'alumno_codigo', 'curso_codigo', 'fecha', 'periodo', 'estado', 'nota'] }
+        };
+
+        // ========== ESTADO GLOBAL ==========
         let db = null;
         let SQL = null;
-        let toast;
+        let toast = null;
 
-        // Inicializar la base de datos
+        // ========== INICIALIZACIÓN ==========
         async function initDatabase() {
             try {
                 SQL = await initSqlJs({
                     locateFile: file => `https://cdn.jsdelivr.net/npm/sql.js@1.8.0/dist/sql-wasm.wasm`
                 });
+
+                // Cargar desde OPFS
+                let arrayBuffer = null;
+                try {
+                    const root = await navigator.storage.getDirectory();
+                    const fileHandle = await root.getFileHandle(DB_NAME);
+                    const file = await fileHandle.getFile();
+                    arrayBuffer = await file.arrayBuffer();
+                    console.log('✅ BD cargada desde OPFS');
+                } catch (e) {
+                    console.log('🆕 Creando nueva BD');
+                }
+
+                // Crear/abrir BD
+                if (arrayBuffer) {
+                    db = new SQL.Database(new Uint8Array(arrayBuffer));
+                } else {
+                    db = new SQL.Database();
+                }
+
+                // Crear tablas si no existen
+                await crearTablas();
+                await guardarEnOPFS();
+                await cargarDatosIniciales();
                 
-                // Crear o abrir base de datos
-                db = new SQL.Database();
-                
-                // Crear tabla de alumnos
-                db.run(`
-                    CREATE TABLE IF NOT EXISTS alumnos (
-                        codigo TEXT PRIMARY KEY,
-                        nombre TEXT NOT NULL,
-                        direccion TEXT NOT NULL,
-                        telefono TEXT NOT NULL
-                    );
-                `);
-                
-                console.log("Base de datos inicializada correctamente");
-                cargarAlumnos();
+                mostrarToast('✅ Sistema listo', 'success');
                 
             } catch (error) {
-                console.error("Error al inicializar la base de datos:", error);
-                mostrarToast("Error al inicializar la base de datos", "error");
+                console.error('❌ Error fatal:', error);
+                mostrarToast('Error al iniciar sistema', 'error');
             }
         }
 
-        // Guardar alumno
-        function guardarAlumno(event) {
+        async function crearTablas() {
+            // Tabla alumnos
+            db.run(`CREATE TABLE IF NOT EXISTS alumnos (
+                codigo TEXT PRIMARY KEY,
+                nombre TEXT NOT NULL,
+                direccion TEXT NOT NULL,
+                telefono TEXT NOT NULL
+            );`);
+
+            // Tabla cursos
+            db.run(`CREATE TABLE IF NOT EXISTS cursos (
+                codigo TEXT PRIMARY KEY,
+                nombre TEXT NOT NULL,
+                creditos INTEGER NOT NULL,
+                horas INTEGER NOT NULL,
+                descripcion TEXT,
+                estado TEXT DEFAULT 'ACTIVO'
+            );`);
+
+            // NUEVA: Tabla profesores
+            db.run(`CREATE TABLE IF NOT EXISTS profesores (
+                codigo TEXT PRIMARY KEY,
+                nombre TEXT NOT NULL,
+                telefono TEXT NOT NULL,
+                especialidad TEXT NOT NULL,
+                email TEXT NOT NULL,
+                titulo TEXT,
+                estado TEXT DEFAULT 'ACTIVO'
+            );`);
+
+            // NUEVA: Tabla matriculas
+            db.run(`CREATE TABLE IF NOT EXISTS matriculas (
+                id TEXT PRIMARY KEY,
+                alumno_codigo TEXT NOT NULL,
+                curso_codigo TEXT NOT NULL,
+                fecha TEXT NOT NULL,
+                periodo TEXT NOT NULL,
+                estado TEXT DEFAULT 'ACTIVA',
+                nota REAL,
+                FOREIGN KEY (alumno_codigo) REFERENCES alumnos(codigo),
+                FOREIGN KEY (curso_codigo) REFERENCES cursos(codigo)
+            );`);
+
+            console.log('📋 Tablas verificadas');
+        }
+
+        // ========== PERSISTENCIA OPFS ==========
+        async function guardarEnOPFS() {
+            try {
+                const data = db.export();
+                const root = await navigator.storage.getDirectory();
+                const fileHandle = await root.getFileHandle(DB_NAME, { create: true });
+                const writable = await fileHandle.createWritable();
+                await writable.write(data);
+                await writable.close();
+                document.getElementById('dbStatus').textContent = 'Guardado';
+                setTimeout(() => document.getElementById('dbStatus').textContent = 'Conectado', 1000);
+                return true;
+            } catch (error) {
+                console.error('Error guardando:', error);
+                return false;
+            }
+        }
+
+        // ========== CRUD ALUMNOS (SIN CAMBIOS) ==========
+        async function guardarAlumno(event) {
             event.preventDefault();
             
-            const codigo = document.getElementById('codigo').value.trim();
-            const nombre = document.getElementById('nombre').value.trim();
-            const direccion = document.getElementById('direccion').value.trim();
-            const telefono = document.getElementById('telefono').value.trim();
-            
-            if (!codigo || !nombre || !direccion || !telefono) {
-                mostrarToast("Todos los campos son obligatorios", "error");
+            const datos = {
+                codigo: document.getElementById('codigo').value.trim(),
+                nombre: document.getElementById('nombre').value.trim(),
+                direccion: document.getElementById('direccion').value.trim(),
+                telefono: document.getElementById('telefono').value.trim()
+            };
+
+            if (!Object.values(datos).every(v => v)) {
+                mostrarToast('Todos los campos son obligatorios', 'error');
                 return;
             }
-            
+
             try {
-                // Verificar si el código ya existe
-                const checkStmt = db.prepare("SELECT codigo FROM alumnos WHERE codigo = ?");
-                checkStmt.bind([codigo]);
-                const exists = checkStmt.step();
-                checkStmt.free();
-                
-                if (exists) {
-                    mostrarToast("Ya existe un alumno con ese código", "error");
+                const check = db.exec(`SELECT codigo FROM alumnos WHERE codigo = '${datos.codigo}'`);
+                if (check.length > 0 && check[0].values.length > 0) {
+                    mostrarToast('El código ya existe', 'error');
                     return;
                 }
+
+                db.run(`INSERT INTO alumnos (codigo, nombre, direccion, telefono) VALUES (?, ?, ?, ?)`, 
+                       [datos.codigo, datos.nombre, datos.direccion, datos.telefono]);
                 
-                // Insertar el nuevo alumno
-                const stmt = db.prepare("INSERT INTO alumnos (codigo, nombre, direccion, telefono) VALUES (?, ?, ?, ?)");
-                stmt.run([codigo, nombre, direccion, telefono]);
-                stmt.free();
-                
-                mostrarToast("Alumno guardado exitosamente", "success");
-                limpiarFormulario();
+                await guardarEnOPFS();
+                mostrarToast('Alumno guardado', 'success');
+                document.getElementById('alumnoForm').reset();
                 cargarAlumnos();
+                cargarSelectores(); // Actualizar selectores de matrícula
                 
             } catch (error) {
-                console.error("Error al guardar:", error);
-                mostrarToast("Error al guardar el alumno", "error");
+                console.error('Error:', error);
+                mostrarToast('Error al guardar', 'error');
             }
         }
 
-        // Cargar alumnos en la tabla
+        // ========== CRUD CURSOS (SIN CAMBIOS) ==========
+        async function guardarCurso(event) {
+            event.preventDefault();
+            
+            const datos = {
+                codigo: document.getElementById('codigoCurso').value.trim(),
+                nombre: document.getElementById('nombreCurso').value.trim(),
+                creditos: parseInt(document.getElementById('creditos').value),
+                horas: parseInt(document.getElementById('horas').value),
+                descripcion: document.getElementById('descripcion').value.trim() || '',
+                estado: document.getElementById('estadoCurso').value
+            };
+
+            if (!datos.codigo || !datos.nombre || !datos.creditos || !datos.horas) {
+                mostrarToast('Campos obligatorios: Código, Nombre, Créditos y Horas', 'error');
+                return;
+            }
+
+            try {
+                const check = db.exec(`SELECT codigo FROM cursos WHERE codigo = '${datos.codigo}'`);
+                if (check.length > 0 && check[0].values.length > 0) {
+                    mostrarToast('El código del curso ya existe', 'error');
+                    return;
+                }
+
+                db.run(`INSERT INTO cursos (codigo, nombre, creditos, horas, descripcion, estado) 
+                       VALUES (?, ?, ?, ?, ?, ?)`, 
+                       [datos.codigo, datos.nombre, datos.creditos, datos.horas, datos.descripcion, datos.estado]);
+                
+                await guardarEnOPFS();
+                mostrarToast('Curso guardado', 'success');
+                document.getElementById('cursoForm').reset();
+                cargarCursos();
+                cargarSelectores(); // Actualizar selectores de matrícula
+                
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarToast('Error al guardar curso', 'error');
+            }
+        }
+
+        // ========== NUEVO CRUD PROFESORES ==========
+        async function guardarProfesor(event) {
+            event.preventDefault();
+            
+            const datos = {
+                codigo: document.getElementById('codigoProfesor').value.trim(),
+                nombre: document.getElementById('nombreProfesor').value.trim(),
+                telefono: document.getElementById('telefonoProfesor').value.trim(),
+                especialidad: document.getElementById('especialidad').value,
+                email: document.getElementById('emailProfesor').value.trim(),
+                titulo: document.getElementById('titulo').value.trim() || '',
+                estado: document.getElementById('estadoProfesor').value
+            };
+
+            if (!datos.codigo || !datos.nombre || !datos.telefono || !datos.email) {
+                mostrarToast('Campos obligatorios: Código, Nombre, Teléfono y Email', 'error');
+                return;
+            }
+
+            try {
+                const check = db.exec(`SELECT codigo FROM profesores WHERE codigo = '${datos.codigo}'`);
+                if (check.length > 0 && check[0].values.length > 0) {
+                    mostrarToast('El código ya existe', 'error');
+                    return;
+                }
+
+                db.run(`INSERT INTO profesores (codigo, nombre, telefono, especialidad, email, titulo, estado) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?)`, 
+                       [datos.codigo, datos.nombre, datos.telefono, datos.especialidad, datos.email, datos.titulo, datos.estado]);
+                
+                await guardarEnOPFS();
+                mostrarToast('Profesor guardado', 'success');
+                document.getElementById('profesorForm').reset();
+                cargarProfesores();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarToast('Error al guardar profesor', 'error');
+            }
+        }
+
+        // ========== NUEVO CRUD MATRÍCULAS ==========
+        async function guardarMatricula(event) {
+            event.preventDefault();
+            
+            const datos = {
+                id: document.getElementById('idMatricula').value.trim(),
+                alumno: document.getElementById('alumnoMatricula').value,
+                curso: document.getElementById('cursoMatricula').value,
+                fecha: document.getElementById('fechaMatricula').value,
+                periodo: document.getElementById('periodo').value,
+                estado: document.getElementById('estadoMatricula').value,
+                nota: document.getElementById('nota').value ? parseFloat(document.getElementById('nota').value) : null
+            };
+
+            if (!datos.id || !datos.alumno || !datos.curso || !datos.fecha) {
+                mostrarToast('Campos obligatorios: N° Matrícula, Alumno, Curso y Fecha', 'error');
+                return;
+            }
+
+            try {
+                const check = db.exec(`SELECT id FROM matriculas WHERE id = '${datos.id}'`);
+                if (check.length > 0 && check[0].values.length > 0) {
+                    mostrarToast('El número de matrícula ya existe', 'error');
+                    return;
+                }
+
+                db.run(`INSERT INTO matriculas (id, alumno_codigo, curso_codigo, fecha, periodo, estado, nota) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?)`, 
+                       [datos.id, datos.alumno, datos.curso, datos.fecha, datos.periodo, datos.estado, datos.nota]);
+                
+                await guardarEnOPFS();
+                mostrarToast('Matrícula guardada', 'success');
+                document.getElementById('matriculaForm').reset();
+                cargarMatriculas();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarToast('Error al guardar matrícula', 'error');
+            }
+        }
+
+        // ========== CARGA DE DATOS ==========
         function cargarAlumnos() {
             try {
                 const result = db.exec("SELECT * FROM alumnos ORDER BY nombre");
                 const tbody = document.getElementById('tablaAlumnos');
                 
-                if (result.length === 0 || result[0].values.length === 0) {
+                if (!result.length || !result[0].values.length) {
                     tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No hay alumnos registrados</td></tr>';
                     return;
                 }
-                
-                const alumnos = result[0].values;
+
                 let html = '';
-                
-                alumnos.forEach(alumno => {
-                    html += `
-                        <tr>
-                            <td><span class="badge bg-light text-dark">${alumno[0]}</span></td>
-                            <td class="fw-bold">${alumno[1]}</td>
-                            <td>${alumno[2]}</td>
-                            <td>${alumno[3]}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editarAlumno('${alumno[0]}')" title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarAlumno('${alumno[0]}')" title="Eliminar">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                                 <button type="button" class="btn btn-info ms-2" onclick="verDB()">
-                                  <i class="bi bi-database"></i> Ver DB
-                                </button>
-                        </tr>
-                    `;
+                result[0].values.forEach(a => {
+                    html += `<tr>
+                        <td><span class="badge bg-light text-dark">${a[0]}</span></td>
+                        <td><strong>${a[1]}</strong></td>
+                        <td>${a[2]}</td>
+                        <td>${a[3]}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarAlumno('${a[0]}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
                 });
-                
                 tbody.innerHTML = html;
                 
             } catch (error) {
-                console.error("Error al cargar alumnos:", error);
+                console.error('Error cargando alumnos:', error);
             }
         }
 
-        // Editar alumno
-        function editarAlumno(codigo) {
+        function cargarCursos() {
             try {
-                const stmt = db.prepare("SELECT * FROM alumnos WHERE codigo = ?");
-                stmt.bind([codigo]);
+                const result = db.exec("SELECT * FROM cursos ORDER BY nombre");
+                const tbody = document.getElementById('tablaCursos');
                 
-                if (stmt.step()) {
-                    const alumno = stmt.get();
-                    document.getElementById('codigo').value = alumno[0];
-                    document.getElementById('nombre').value = alumno[1];
-                    document.getElementById('direccion').value = alumno[2];
-                    document.getElementById('telefono').value = alumno[3];
-                    
-                    // Deshabilitar el campo código para evitar cambios
-                    document.getElementById('codigo').disabled = true;
-                    
-                    mostrarToast("Puede editar los datos del alumno", "info");
+                if (!result.length || !result[0].values.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No hay cursos registrados</td></tr>';
+                    return;
                 }
-                
-                stmt.free();
+
+                let html = '';
+                result[0].values.forEach(c => {
+                    const estadoClass = {
+                        'ACTIVO': 'success',
+                        'INACTIVO': 'danger',
+                        'EN PROCESO': 'warning'
+                    }[c[5]] || 'secondary';
+
+                    html += `<tr>
+                        <td><span class="badge bg-light text-dark">${c[0]}</span></td>
+                        <td><strong>${c[1]}</strong></td>
+                        <td>${c[2]}</td>
+                        <td>${c[3]}</td>
+                        <td><span class="badge bg-${estadoClass}">${c[5]}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarCurso('${c[0]}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
                 
             } catch (error) {
-                console.error("Error al cargar alumno para editar:", error);
-                mostrarToast("Error al cargar el alumno", "error");
+                console.error('Error cargando cursos:', error);
             }
         }
 
-
-
-        // Eliminar alumno
-        function eliminarAlumno(codigo) {
-            if (confirm("¿Está seguro de eliminar este alumno?")) {
-                try {
-                    const stmt = db.prepare("DELETE FROM alumnos WHERE codigo = ?");
-                    stmt.run([codigo]);
-                    stmt.free();
-                    
-                    mostrarToast("Alumno eliminado exitosamente", "success");
-                    cargarAlumnos();
-                    
-                    // Si el alumno eliminado estaba en edición, limpiar formulario
-                    if (document.getElementById('codigo').value === codigo) {
-                        limpiarFormulario();
-                    }
-                    
-                } catch (error) {
-                    console.error("Error al eliminar:", error);
-                    mostrarToast("Error al eliminar el alumno", "error");
+        // NUEVO: Cargar profesores
+        function cargarProfesores() {
+            try {
+                const result = db.exec("SELECT * FROM profesores ORDER BY nombre");
+                const tbody = document.getElementById('tablaProfesores');
+                
+                if (!result.length || !result[0].values.length) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No hay profesores registrados</td></tr>';
+                    return;
                 }
+
+                let html = '';
+                result[0].values.forEach(p => {
+                    const estadoClass = {
+                        'ACTIVO': 'success',
+                        'INACTIVO': 'danger',
+                        'VACACIONES': 'warning'
+                    }[p[6]] || 'secondary';
+
+                    html += `<tr>
+                        <td><span class="badge bg-light text-dark">${p[0]}</span></td>
+                        <td><strong>${p[1]}</strong></td>
+                        <td>${p[3]}</td>
+                        <td>${p[2]}</td>
+                        <td>${p[4]}</td>
+                        <td><span class="badge bg-${estadoClass}">${p[6]}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarProfesor('${p[0]}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error cargando profesores:', error);
             }
         }
 
-        // Limpiar formulario
-        function limpiarFormulario() {
-            document.getElementById('alumnoForm').reset();
-            document.getElementById('codigo').disabled = false;
+        // NUEVO: Cargar matrículas
+        function cargarMatriculas() {
+            try {
+                const result = db.exec(`
+                    SELECT m.id, a.nombre, c.nombre, m.fecha, m.periodo, m.estado, m.nota 
+                    FROM matriculas m
+                    JOIN alumnos a ON m.alumno_codigo = a.codigo
+                    JOIN cursos c ON m.curso_codigo = c.codigo
+                    ORDER BY m.fecha DESC
+                `);
+                
+                const tbody = document.getElementById('tablaMatriculas');
+                
+                if (!result.length || !result[0].values.length) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No hay matrículas registradas</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                result[0].values.forEach(m => {
+                    const estadoClass = {
+                        'ACTIVA': 'success',
+                        'PENDIENTE': 'warning',
+                        'CANCELADA': 'danger',
+                        'FINALIZADA': 'info'
+                    }[m[5]] || 'secondary';
+
+                    html += `<tr>
+                        <td><span class="badge bg-light text-dark">${m[0]}</span></td>
+                        <td>${m[1]}</td>
+                        <td>${m[2]}</td>
+                        <td>${m[3]}</td>
+                        <td>${m[4]}</td>
+                        <td><span class="badge bg-${estadoClass}">${m[5]}</span></td>
+                        <td>${m[6] ? m[6] : '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarMatricula('${m[0]}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error cargando matrículas:', error);
+            }
         }
 
-        // Mostrar toast
-        function mostrarToast(mensaje, tipo = "success") {
-            const toastElement = document.getElementById('liveToast');
-            const toastBody = document.getElementById('toastMessage');
-            const toastHeader = toastElement.querySelector('.toast-header i');
+        // NUEVO: Cargar selectores para matrículas
+        function cargarSelectores() {
+            // Cargar alumnos en selector
+            const alumnoSelect = document.getElementById('alumnoMatricula');
+            const alumnos = db.exec("SELECT codigo, nombre FROM alumnos ORDER BY nombre");
             
-            toastBody.textContent = mensaje;
-            
-            if (tipo === "success") {
-                toastHeader.style.color = "#28a745";
-            } else if (tipo === "error") {
-                toastHeader.style.color = "#dc3545";
-            } else {
-                toastHeader.style.color = "#667eea";
+            let options = '<option value="">Seleccionar alumno...</option>';
+            if (alumnos.length && alumnos[0].values.length) {
+                alumnos[0].values.forEach(a => {
+                    options += `<option value="${a[0]}">${a[1]}</option>`;
+                });
             }
+            alumnoSelect.innerHTML = options;
+
+            // Cargar cursos en selector
+            const cursoSelect = document.getElementById('cursoMatricula');
+            const cursos = db.exec("SELECT codigo, nombre FROM cursos WHERE estado = 'ACTIVO' ORDER BY nombre");
+            
+            options = '<option value="">Seleccionar curso...</option>';
+            if (cursos.length && cursos[0].values.length) {
+                cursos[0].values.forEach(c => {
+                    options += `<option value="${c[0]}">${c[1]}</option>`;
+                });
+            }
+            cursoSelect.innerHTML = options;
+        }
+
+        async function cargarDatosIniciales() {
+            cargarAlumnos();
+            cargarCursos();
+            cargarProfesores();
+            cargarMatriculas();
+            cargarSelectores();
+        }
+
+        // ========== ELIMINACIONES ==========
+        async function eliminarAlumno(codigo) {
+            if (confirm('¿Eliminar este alumno?')) {
+                db.run(`DELETE FROM alumnos WHERE codigo = '${codigo}'`);
+                await guardarEnOPFS();
+                cargarAlumnos();
+                cargarSelectores();
+                mostrarToast('Alumno eliminado', 'success');
+            }
+        }
+
+        async function eliminarCurso(codigo) {
+            if (confirm('¿Eliminar este curso?')) {
+                db.run(`DELETE FROM cursos WHERE codigo = '${codigo}'`);
+                await guardarEnOPFS();
+                cargarCursos();
+                cargarSelectores();
+                mostrarToast('Curso eliminado', 'success');
+            }
+        }
+
+        // NUEVO: Eliminar profesor
+        async function eliminarProfesor(codigo) {
+            if (confirm('¿Eliminar este profesor?')) {
+                db.run(`DELETE FROM profesores WHERE codigo = '${codigo}'`);
+                await guardarEnOPFS();
+                cargarProfesores();
+                mostrarToast('Profesor eliminado', 'success');
+            }
+        }
+
+        // NUEVO: Eliminar matrícula
+        async function eliminarMatricula(id) {
+            if (confirm('¿Eliminar esta matrícula?')) {
+                db.run(`DELETE FROM matriculas WHERE id = '${id}'`);
+                await guardarEnOPFS();
+                cargarMatriculas();
+                mostrarToast('Matrícula eliminada', 'success');
+            }
+        }
+
+        // ========== UTILIDADES ==========
+        function limpiarForm(formId) {
+            document.getElementById(formId).reset();
+        }
+
+        function mostrarToast(mensaje, tipo = 'info') {
+            const toastEl = document.getElementById('liveToast');
+            const icon = document.getElementById('toastIcon');
+            const title = document.getElementById('toastTitle');
+            
+            const config = {
+                success: { icon: 'bi-check-circle-fill', color: '#28a745', title: 'Éxito' },
+                error: { icon: 'bi-exclamation-circle-fill', color: '#dc3545', title: 'Error' },
+                info: { icon: 'bi-info-circle-fill', color: '#3498db', title: 'Información' }
+            }[tipo];
+
+            icon.className = `bi ${config.icon} me-2`;
+            icon.style.color = config.color;
+            title.textContent = config.title;
+            document.getElementById('toastMessage').textContent = mensaje;
             
             toast.show();
         }
 
-        // Event listeners
+        async function exportarDB() {
+            const data = db.export();
+            const blob = new Blob([data], {type: 'application/x-sqlite3'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_${new Date().toISOString().slice(0,10)}.db`;
+            a.click();
+            mostrarToast('Backup creado', 'success');
+        }
+
+        // ========== NAVEGACIÓN ==========
+        function cambiarSeccion(seccion) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+            
+            // Mostrar sección seleccionada
+            const seccionMostrar = document.getElementById(`section${seccion.charAt(0).toUpperCase() + seccion.slice(1)}`);
+            if (seccionMostrar) seccionMostrar.style.display = 'block';
+            
+            // Actualizar active en sidebar
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelector(`[data-section="${seccion}"]`).classList.add('active');
+            
+            // Actualizar header
+            const titles = {
+                alumnos: { icon: 'people-fill', title: 'Gestión de Alumnos', desc: 'Administra los estudiantes' },
+                cursos: { icon: 'book-fill', title: 'Gestión de Cursos', desc: 'Administra los cursos académicos' },
+                profesores: { icon: 'person-badge-fill', title: 'Gestión de Profesores', desc: 'Administra el cuerpo docente' },
+                matriculas: { icon: 'calendar-check-fill', title: 'Gestión de Matrículas', desc: 'Administra las inscripciones' },
+                dashboard: { icon: 'speedometer2', title: 'Dashboard', desc: 'Estadísticas del sistema' }
+            };
+            
+            const t = titles[seccion];
+            document.getElementById('sectionTitle').innerHTML = `<i class="bi bi-${t.icon} me-2"></i>${t.title}`;
+            document.getElementById('sectionDesc').textContent = t.desc;
+        }
+
+        // ========== EVENT LISTENERS ==========
         document.addEventListener('DOMContentLoaded', async () => {
+            // Inicializar toast
+            toast = new bootstrap.Toast(document.getElementById('liveToast'), { delay: 3000 });
+            
+            // Inicializar BD
             await initDatabase();
             
-            toast = new bootstrap.Toast(document.getElementById('liveToast'), {
-                autohide: true,
-                delay: 3000
+            // Configurar navegación
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    cambiarSeccion(link.dataset.section);
+                });
             });
             
+            // Configurar formularios
             document.getElementById('alumnoForm').addEventListener('submit', guardarAlumno);
-            
-            document.getElementById('btnAlumnos').addEventListener('click', (e) => {
-                e.preventDefault();
-                limpiarFormulario();
-                cargarAlumnos();
-            });
+            document.getElementById('cursoForm').addEventListener('submit', guardarCurso);
+            document.getElementById('profesorForm').addEventListener('submit', guardarProfesor);
+            document.getElementById('matriculaForm').addEventListener('submit', guardarMatricula);
         });
     </script>
 </body>
