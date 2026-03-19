@@ -36,6 +36,9 @@
 
             <docentes @buscar='buscar("busqueda_docentes","obtenerDocentes")' :forms="forms" ref="docentes" v-show="forms.docentes.mostrar"></docentes>
             <buscar_docentes @modificar='modificar("docentes","modificarDocente", $event)' :forms="forms" ref="busqueda_docentes" v-show="forms.busqueda_docentes.mostrar"></buscar_docentes>
+            
+            <!-- AGREGADO: Componente de inscripciones -->
+            <inscripciones :forms="forms" ref="inscripciones" v-show="forms.inscripciones.mostrar"></inscripciones>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
@@ -53,6 +56,8 @@
     <script src="componentes/busqueda_materias.js"></script>
     <script src="componentes/docentes.js"></script>
     <script src="componentes/busqueda_docentes.js"></script>
+    <!-- AGREGADO: Script de inscripciones -->
+    <script src="componentes/inscripciones.js"></script>
     <script src="main.js"></script>
 </body>
 </html>

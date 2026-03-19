@@ -43,7 +43,9 @@ createApp({
         db.version(1).stores({
             "alumnos": "idAlumno, codigo, nombre, direccion, email, telefono",
             "materias": "idMateria, codigo, nombre, uv",
-            "docentes": "idDocente, codigo, nombre, direccion, email, telefono, escalafon"
+            "docentes": "idDocente, codigo, nombre, direccion, email, telefono, escalafon",
+            "matriculas": "idMatricula, idAlumno, idMateria, idDocente, fecha, estado",
+            "inscripciones": "idInscripcion, idAlumno, idMateria, fecha, estado"
         });
     }
 }).directive('draggable', vDraggable).mount("#app");
