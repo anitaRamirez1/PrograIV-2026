@@ -11,6 +11,7 @@ const busqueda_matriculas = {
     },
     methods: {
         async obtenerDatosRelacionados() {
+            // Cargamos mapas de nombres para mostrar en la tabla en lugar de IDs
             const [listaAlumnos, listaMaterias, listaDocentes] = await Promise.all([
                 db.alumnos.toArray(),
                 db.materias.toArray(),
@@ -20,64 +21,57 @@ const busqueda_matriculas = {
             this.alumnos = Object.fromEntries(listaAlumnos.map(a => [a.idAlumno, a.nombre]));
             this.materias = Object.fromEntries(listaMaterias.map(m => [m.idMateria, m.nombre]));
             this.docentes = Object.fromEntries(listaDocentes.map(d => [d.idDocente, d.nombre]));
+            
         },
         async obtenerMatriculas() {
             await this.obtenerDatosRelacionados();
+            let term = this.buscar.toLowerCase();
             let todas = await db.matriculas.toArray();
             this.matriculas = todas.filter(m => {
                 const nombreAlumno = (this.alumnos[m.idAlumno] || '').toLowerCase();
-                const periodo = (m.periodo || '').toLowerCase();
-                const busqueda = this.buscar.toLowerCase();
-                return nombreAlumno.includes(busqueda) || periodo.includes(busqueda);
+                const nombreMateria = (this.materias[m.idMateria] || '').toLowerCase();
+                const nombreDocente = (this.docentes[m.idDocente] || '').toLowerCase();
+                
+                // Buscar en los nombres resueltos
+                const matchResueltos = nombreAlumno.includes(term) || nombreMateria.includes(term) || nombreDocente.includes(term);
+                // Buscar en los campos directos de la base
+                const matchBase = Object.values(m).some(val => String(val).toLowerCase().includes(term));
+                
+                return matchResueltos || matchBase;
             });
         },
-        editarMatricula(matricula) {
+        async editarMatricula(matricula) {
             this.$emit('modificar', matricula);
             this.forms.busqueda_matriculas.mostrar = false;
         },
         async eliminarMatricula(matricula) {
             alertify.confirm('Eliminar Matrícula', `¿Desea eliminar la matrícula del alumno ${this.alumnos[matricula.idAlumno]}?`, 
             async () => {
-                // Eliminar de Dexie
                 await db.matriculas.delete(matricula.idMatricula);
-                
-                // Eliminar de MySQL
-                let formData = new FormData();
-                formData.append('accion', 'eliminar');
-                formData.append('matriculas', JSON.stringify(matricula));
-
-                fetch(`private/modulos/matriculas/matriculas.php`, {
-                    method: 'POST',
-                    body: formData
-                }).then(() => {
-                    this.obtenerMatriculas();
-                    alertify.success('Registro eliminado');
-                });
-                
+                fetch(`private/modulos/matriculas/matriculas.php?accion=eliminar&matriculas=${JSON.stringify(matricula)}`);
+                this.obtenerMatriculas();
+                alertify.success('Eliminado correctamente');
             }, () => {});
         },
         cerrar() {
             this.forms.busqueda_matriculas.mostrar = false;
         }
     },
-    mounted() {
-        this.obtenerMatriculas();
-    },
     template: `
-        <div v-if="forms.busqueda_matriculas.mostrar" v-draggable class="position-absolute top-50 start-50 translate-middle" style="z-index: 1100; width: 95%; max-width: 1000px; cursor: move;">
-            <div class="card text-bg-dark mb-3 shadow-lg">
+        <div v-draggable style="width: 90%; max-width: 1000px;">
+            <div class="card text-bg-dark mb-3">
                 <div class="card-header d-flex justify-content-between">
-                    <span class="fw-bold">BÚSQUEDA DE MATRÍCULAS</span>
+                    BUSQUEDA DE MATRICULAS
                     <button type="button" class="btn-close btn-close-white" @click="cerrar"></button>
                 </div>
                 <div class="card-body">
                     <div class="input-group mb-3">
                         <input type="search" v-model="buscar" @keyup="obtenerMatriculas" 
-                               placeholder="Buscar por alumno o periodo..." class="form-control bg-dark text-white border-secondary">
-                        <button class="btn btn-outline-light" @click="obtenerMatriculas">BUSCAR</button>
+                               placeholder="Buscar por alumno o periodo..." class="form-control">
+                        <button class="btn btn-outline-secondary" @click="obtenerMatriculas">BUSCAR</button>
                     </div>
-                    <div class="table-responsive" style="max-height: 400px;">
-                        <table class="table table-dark table-striped table-hover align-middle">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped table-hover">
                             <thead>
                                 <tr>
                                     <th>ALUMNO</th>
@@ -85,8 +79,8 @@ const busqueda_matriculas = {
                                     <th>DOCENTE</th>
                                     <th>FECHA</th>
                                     <th>PERIODO</th>
-                                    <th>GESTIÓN</th>
-                                    <th class="text-center">ACCIONES</th>
+                                    <th>GESTION</th>
+                                    <th colspan="2">ACCIONES</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -97,13 +91,15 @@ const busqueda_matriculas = {
                                     <td>{{ m.fecha }}</td>
                                     <td>{{ m.periodo }}</td>
                                     <td>{{ m.gestion }}</td>
-                                    <td class="text-center">
-                                        <button class="btn btn-warning btn-sm me-1" @click="editarMatricula(m)">EDITAR</button>
+                                    <td>
+                                        <button class="btn btn-warning btn-sm" @click="editarMatricula(m)">EDITAR</button>
+                                    </td>
+                                    <td>
                                         <button class="btn btn-danger btn-sm" @click="eliminarMatricula(m)">ELIMINAR</button>
                                     </td>
                                 </tr>
                                 <tr v-if="matriculas.length === 0">
-                                    <td colspan="7" class="text-center text-muted">No hay registros</td>
+                                    <td colspan="8" class="text-center">No hay registros</td>
                                 </tr>
                             </tbody>
                         </table>

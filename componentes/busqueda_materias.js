@@ -16,10 +16,10 @@ const buscar_materias = {
             this.$emit('modificar', materia);
         },
         async obtenerMaterias(){
-            this.materias = await db.materias.filter(
-                materia => materia.codigo.toLowerCase().includes(this.buscar.toLowerCase()) 
-                    || materia.nombre.toLowerCase().includes(this.buscar.toLowerCase())
-            ).toArray();
+            let term = this.buscar.toLowerCase();
+            this.materias = await db.materias.filter(m => {
+                return Object.values(m).some(val => String(val).toLowerCase().includes(term));
+            }).toArray();
         },
         async editarMateria(materia, e){
             e.stopPropagation();
@@ -30,6 +30,7 @@ const buscar_materias = {
             e.stopPropagation();
             alertify.confirm('Eliminar materia', `¿Está seguro de eliminar la materia ${materia.nombre}?`, async e=>{
                 await db.materias.delete(materia.idMateria);
+                fetch(`private/modulos/materias/materia.php?accion=eliminar&materias=${encodeURIComponent(JSON.stringify(materia))}`);
                 this.obtenerMaterias();
                 alertify.success(`Materia ${materia.nombre} eliminada correctamente`);
             }, () => {});

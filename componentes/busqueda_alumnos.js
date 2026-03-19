@@ -16,11 +16,10 @@ const buscar_alumnos = {
             this.$emit('modificar', alumno);
         },
         async obtenerAlumnos(){
-            this.alumnos = await db.alumnos.filter(
-                alumno => alumno.codigo.toLowerCase().includes(this.buscar.toLowerCase()) 
-                    || alumno.nombre.toLowerCase().includes(this.buscar.toLowerCase())
-                    || alumno.apellido.toLowerCase().includes(this.buscar.toLowerCase())
-            ).toArray();
+            let term = this.buscar.toLowerCase();
+            this.alumnos = await db.alumnos.filter(a => {
+                return Object.values(a).some(val => String(val).toLowerCase().includes(term));
+            }).toArray();
         },
         async editarAlumno(alumno, e){
             e.stopPropagation();
@@ -31,6 +30,7 @@ const buscar_alumnos = {
             e.stopPropagation();
             alertify.confirm('Eliminar alumno', `¿Está seguro de eliminar el alumno ${alumno.nombre} ${alumno.apellido}?`, async e=>{
                 await db.alumnos.delete(alumno.idAlumno);
+                fetch(`private/modulos/alumnos/alumno.php?accion=eliminar&alumnos=${encodeURIComponent(JSON.stringify(alumno))}`);
                 this.obtenerAlumnos();
                 alertify.success(`Alumno ${alumno.nombre} eliminado correctamente`);
             }, () => {});

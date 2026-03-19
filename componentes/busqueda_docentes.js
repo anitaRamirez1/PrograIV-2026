@@ -16,10 +16,10 @@ const buscar_docentes = {
             this.$emit('modificar', docente);
         },
         async obtenerDocentes(){
-            this.docentes = await db.docentes.filter(
-                docente => docente.codigo.toLowerCase().includes(this.buscar.toLowerCase()) 
-                    || docente.nombre.toLowerCase().includes(this.buscar.toLowerCase())
-            ).toArray();
+            let term = this.buscar.toLowerCase();
+            this.docentes = await db.docentes.filter(d => {
+                return Object.values(d).some(val => String(val).toLowerCase().includes(term));
+            }).toArray();
         },
         async editarDocente(docente, e){
             e.stopPropagation();
@@ -32,6 +32,7 @@ const buscar_docentes = {
             e.stopPropagation();
             alertify.confirm('Eliminar docentes', `¿Está seguro de eliminar el docente ${docente.nombre}?`, async e=>{
                 await db.docentes.delete(docente.idDocente);
+                fetch(`private/modulos/docentes/docentes.php?accion=eliminar&docentes=${encodeURIComponent(JSON.stringify(docente))}`);
                 this.obtenerDocentes();
                 alertify.success(`Docente ${docente.nombre} eliminado correctamente`);
             }, () => {

@@ -1,62 +1,103 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Mar 02, 2026 at 07:06 PM
--- Server version: 10.4.25-MariaDB
--- PHP Version: 8.1.10
+-- Servidor: 127.0.0.1
+-- Base de datos: `db_academica`
+--
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
-
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
+-- --------------------------------------------------------
+
 --
--- Database: `db_academica`
+-- Estructura de tabla para la tabla `alumnos`
 --
+DROP TABLE IF EXISTS `alumnos`;
+CREATE TABLE `alumnos` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `idAlumno` char(36) NOT NULL,
+  `codigo` char(20) NOT NULL,
+  `nombre` char(100) NOT NULL,
+  `direccion` char(150) NOT NULL,
+  `telefono` char(10) NOT NULL,
+  `email` text NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `alumnos`
+-- Estructura de tabla para la tabla `materias`
 --
+DROP TABLE IF EXISTS `materias`;
+CREATE TABLE `materias` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `idMateria` char(36) NOT NULL,
+  `codigo` char(20) NOT NULL,
+  `nombre` char(100) NOT NULL,
+  `uv` char(100) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `alumnos` (
-  `id` int(10) NOT NULL,
-  `idAlumno` char(36) NOT NULL,
-  `codigo` char(10) NOT NULL,
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `docentes`
+--
+DROP TABLE IF EXISTS `docentes`;
+CREATE TABLE `docentes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `Id_Docentes` char(36) NOT NULL,
+  `codigo` char(20) NOT NULL,
   `nombre` char(100) NOT NULL,
   `direccion` char(150) NOT NULL,
-  `email` char(150) NOT NULL,
-  `telefono` char(9) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
+  `telefono` char(10) NOT NULL,
+  `email` text NOT NULL,
+  `escalafon` char(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
 
 --
--- Indexes for dumped tables
+-- Estructura de tabla para la tabla `inscripciones`
 --
+DROP TABLE IF EXISTS `inscripciones`;
+CREATE TABLE `inscripciones` (
+  `idInscripcion` int(11) NOT NULL AUTO_INCREMENT,
+  `idAlumno` char(36) NOT NULL,
+  `idMateria` char(36) NOT NULL,
+  `fecha` date NOT NULL,
+  PRIMARY KEY (`idInscripcion`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
 
 --
--- Indexes for table `alumnos`
+-- Estructura de tabla para la tabla `matriculas`
 --
-ALTER TABLE `alumnos`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `idAlumno` (`idAlumno`);
+DROP TABLE IF EXISTS `matriculas`;
+CREATE TABLE `matriculas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `idMatricula` char(36) NOT NULL,
+  `idAlumno` char(36) NOT NULL,
+  `idMateria` char(36) NOT NULL,
+  `idDocente` char(36) NOT NULL,
+  `fecha` date NOT NULL,
+  `estado` char(20) NOT NULL,
+  `periodo` char(20) NOT NULL,
+  `gestion` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `alumnos`
---
-ALTER TABLE `alumnos`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -4,6 +4,14 @@ const { createApp } = Vue,
     sha256 = CryptoJS.SHA256,
     uuid = window.uuid;
 
+db.version(1).stores({
+    "alumnos": "idAlumno, codigo, nombre, direccion, email, telefono",
+    "materias": "idMateria, codigo, nombre, uv",
+    "docentes": "idDocente, codigo, nombre, direccion, email, telefono, escalafon",
+    "matriculas": "idMatricula, idAlumno, idMateria, idDocente, fecha, estado",
+    "inscripciones": "idInscripcion, idAlumno, idMateria, fecha, estado"
+});
+
 createApp({
     components:{
         alumnos,
@@ -14,8 +22,7 @@ createApp({
         buscar_docentes,
         matriculas,
         busqueda_matriculas,
-        inscripciones,
-        busqueda_inscripciones // Registro del nuevo componente
+        inscripciones
     },
     data(){
         return{
@@ -28,8 +35,7 @@ createApp({
                 busqueda_docentes:{mostrar:false},
                 matriculas:{mostrar:false},
                 busqueda_matriculas:{mostrar:false},
-                inscripciones:{mostrar:false},
-                busqueda_inscripciones:{mostrar:false} // Estado para la búsqueda de inscripciones
+                inscripciones:{mostrar:false}
             }
         }
     },
@@ -44,10 +50,12 @@ createApp({
             this.$refs[ventana][metodo](data);
         },
         async sincronizarTablas() {
-            // Agregamos inscripciones y matriculas a la sincronización si tienes sus PHP listos
-            const tablas = ['alumnos', 'materias', 'docentes'];
+            const tablas = ['alumnos', 'materias', 'docentes', 'matriculas', 'inscripciones'];
             tablas.forEach(tabla => {
-                const endpoint = tabla === 'alumnos' ? 'alumno' : (tabla === 'materias' ? 'materia' : 'docentes');
+                let endpoint = tabla;
+                if (tabla === 'alumnos') endpoint = 'alumno';
+                else if (tabla === 'materias') endpoint = 'materia';
+                
                 fetch(`private/modulos/${tabla}/${endpoint}.php?accion=consultar`)
                     .then(res => res.json())
                     .then(datos => {
@@ -62,15 +70,6 @@ createApp({
         }
     },
     mounted(){
-        // Configuración de tablas en Dexie
-        db.version(1).stores({
-            "alumnos": "idAlumno, codigo, nombre, direccion, email, telefono",
-            "materias": "idMateria, codigo, nombre, uv",
-            "docentes": "idDocente, codigo, nombre, direccion, email, telefono, escalafon",
-            "matriculas": "idMatricula, idAlumno, idMateria, idDocente, fecha, estado",
-            "inscripciones": "idInscripcion, idAlumno, idMateria, fecha, estado"
-        });
-        
         this.sincronizarTablas();
     }
 }).directive('draggable', vDraggable).mount("#app");

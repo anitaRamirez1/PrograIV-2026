@@ -1,33 +1,41 @@
 <?php
+header('Content-Type: application/json; charset=utf-8');
 include('../../Conexion/DB.php');
-// Asegúrate de que la ruta sea correcta según tu carpeta
 $db = new DB('localhost', 'root', '', 'db_academica');
 
-// Cambiamos a POST para evitar errores de URL larga
-$accion = $_POST['accion'] ?? '';
-$matriculas = json_decode($_POST['matriculas'] ?? '{}', true);
+$accion = $_REQUEST['accion'] ?? '';
+$matriculas = json_decode($_REQUEST['matriculas'] ?? '{}', true);
 
-$resultado = false;
-
-if($accion == 'nuevo'){
-    $sql = "INSERT INTO matriculas (idMatricula, idAlumno, idMateria, idDocente, fecha, estado, periodo, gestion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-    $resultado = $db->consultaSQL($sql, 
-        $matriculas['idMatricula'], $matriculas['idAlumno'], $matriculas['idMateria'], 
-        $matriculas['idDocente'], $matriculas['fecha'], $matriculas['estado'],
-        $matriculas['periodo'], $matriculas['gestion']
-    );
-} else if($accion == 'modificar'){
-    $sql = "UPDATE matriculas SET idAlumno=?, idMateria=?, idDocente=?, fecha=?, estado=?, periodo=?, gestion=? WHERE idMatricula=?";
-    $resultado = $db->consultaSQL($sql, 
-        $matriculas['idAlumno'], $matriculas['idMateria'], $matriculas['idDocente'], 
-        $matriculas['fecha'], $matriculas['estado'], $matriculas['periodo'], 
-        $matriculas['gestion'], $matriculas['idMatricula']
-    );
-} else if($accion == 'eliminar'){
-    $sql = "DELETE FROM matriculas WHERE idMatricula=?";
-    $resultado = $db->consultaSQL($sql, $matriculas['idMatricula']);
+try {
+    if($accion == 'nuevo'){
+        $sql = "INSERT INTO matriculas (idMatricula, idAlumno, idMateria, idDocente, fecha, estado, periodo, gestion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $resultado = $db->consultaSQL($sql, 
+            $matriculas['idMatricula'], $matriculas['idAlumno'], $matriculas['idMateria'], 
+            $matriculas['idDocente'], $matriculas['fecha'], $matriculas['estado'],
+            $matriculas['periodo'], $matriculas['gestion']
+        );
+        if (is_string($resultado)) echo json_encode(['error' => $resultado]);
+        else echo json_encode(true);
+    } else if($accion == 'modificar'){
+        $sql = "UPDATE matriculas SET idAlumno=?, idMateria=?, idDocente=?, fecha=?, estado=?, periodo=?, gestion=? WHERE idMatricula=?";
+        $resultado = $db->consultaSQL($sql, 
+            $matriculas['idAlumno'], $matriculas['idMateria'], $matriculas['idDocente'], 
+            $matriculas['fecha'], $matriculas['estado'], $matriculas['periodo'], 
+            $matriculas['gestion'], $matriculas['idMatricula']
+        );
+        if (is_string($resultado)) echo json_encode(['error' => $resultado]);
+        else echo json_encode(true);
+    } else if($accion == 'eliminar'){
+        $sql = "DELETE FROM matriculas WHERE idMatricula=?";
+        $resultado = $db->consultaSQL($sql, $matriculas['idMatricula']);
+        if (is_string($resultado)) echo json_encode(['error' => $resultado]);
+        else echo json_encode(true);
+    } else if($accion == 'consultar'){
+        $sql = "SELECT idMatricula, idAlumno, idMateria, idDocente, fecha, estado, periodo, gestion FROM matriculas";
+        $db->consultaSQL($sql);
+        echo json_encode($db->obtener_datos());
+    }
+} catch (Exception $e) {
+    echo json_encode(['error' => 'Fatal Exception: ' . $e->getMessage()]);
 }
-
-// Devolvemos siempre un JSON para que el fetch no de error
-echo json_encode($resultado);
 ?>

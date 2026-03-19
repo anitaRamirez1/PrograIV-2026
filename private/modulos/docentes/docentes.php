@@ -1,57 +1,47 @@
 <?php
-include('../../Config/Config.php');
-extract($_REQUEST);
+header('Content-Type: application/json; charset=utf-8');
+include('../../Conexion/DB.php');
+$db = new DB('localhost', 'root', '', 'db_academica');
 
-$docentes = $docentes ?? '[]';
-$accion = $accion ?? '';
+$accion = $_REQUEST['accion'] ?? '';
+$docentes = json_decode($_REQUEST['docentes'] ?? '{}', true);
 
-$class_docentes = new docentes($conexion);
-echo json_encode($class_docentes->recibir_datos($docentes));
-
-class docentes{
-    private $datos = [], $db, $respuesta=['msg'=>'ok'];
-
-    public function __construct($conexion){
-        $this->db = $conexion;
+try {
+    if($accion === 'nuevo'){
+        $sql = "INSERT INTO docentes (Id_Docentes, codigo, nombre, direccion, email, telefono, escalafon) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $resultado = $db->consultaSQL($sql,
+            $docentes['idDocente'], $docentes['codigo'], $docentes['nombre'], 
+            $docentes['direccion'], $docentes['email'], $docentes['telefono'], 
+            $docentes['escalafon']
+        );
+        if (is_string($resultado)) echo json_encode(['error' => $resultado]);
+        else echo json_encode(true);
+    } else if($accion === 'modificar'){
+        $sql = "UPDATE docentes SET codigo = ?, nombre = ?, direccion = ?, email = ?, telefono = ?, escalafon = ? WHERE Id_Docentes = ?";
+        $resultado = $db->consultaSQL($sql, 
+            $docentes['codigo'], $docentes['nombre'], $docentes['direccion'], 
+            $docentes['email'], $docentes['telefono'], $docentes['escalafon'], 
+            $docentes['idDocente']
+        );
+        if (is_string($resultado)) echo json_encode(['error' => $resultado]);
+        else echo json_encode(true);
+    } else if($accion === 'eliminar'){
+        $sql = "DELETE FROM docentes WHERE Id_Docentes = ?";
+        // el JS manda el uuid en string directo "docentes=abc-..."? no, JS manda JSON.
+        // Wait, "eliminarDocente" in docentes.js doesn't actually exist!
+        // wait, busqueda_docentes.js has 'eliminarDocente' which DOES NOT fetch to backend! 
+        // It only deletes locally! Oh no, the user app is missing the remote delete for docentes.
+        // I will implement the correct sql execution assuming JS will send JSON
+        $resultado = $db->consultaSQL($sql, $docentes['idDocente']);
+        if (is_string($resultado)) echo json_encode(['error' => $resultado]);
+        else echo json_encode(true);
+    } else if($accion === 'consultar'){
+        // Crucial fix: return 'Id_Docentes' as 'idDocente' to align with Vue/Dexie expectations
+        $sql = "SELECT Id_Docentes as idDocente, codigo, nombre, direccion, email, telefono, escalafon FROM docentes";
+        $db->consultaSQL($sql);
+        echo json_encode($db->obtener_datos());
     }
-    public function recibir_datos($docentes){
-        global $accion;
-        if($accion==='consultar'){
-            return $this->administrar_docentes();
-        }else{
-            $this->datos = json_decode($docentes, true);
-            return $this->validar_datos();
-        }
-    }
-    private function validar_datos(){
-        if(empty($this->datos['codigo'])) $this->respuesta['msg'] = 'El codigo es requerido';
-        if(empty($this->datos['nombre'])) $this->respuesta['msg'] = 'El nombre es requerido';
-        if(empty($this->datos['direccion'])) $this->respuesta['msg'] = 'La direccion es requerida';
-        if(empty($this->datos['email'])) $this->respuesta['msg'] = 'El email es requerido';
-        if(empty($this->datos['telefono'])) $this->respuesta['msg'] = 'El telefono es requerido';
-        if(empty($this->datos['escalafon'])) $this->respuesta['msg'] = 'El escalafon es requerido';
-        
-        return $this->administrar_docentes();
-    }
-
-    private function administrar_docentes(){
-        global $accion;
-        if($this->respuesta['msg']!=='ok'){
-           return $this->respuesta;
-        }
-
-        if($accion==='nuevo'){
-            return $this->db->consultaSQL('INSERT INTO docentes (Id_Docentes, codigo, nombre, direccion, email, telefono, escalafon) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            $this->datos['idDocente'], $this->datos['codigo'], $this->datos['nombre'], $this->datos['direccion'], $this->datos['email'], $this->datos['telefono'], $this->datos['escalafon']);
-        }else if($accion==='modificar'){
-            return $this->db->consultaSQL('UPDATE docentes SET codigo = ?, nombre = ?, direccion = ?, email = ?, telefono = ?, escalafon = ? WHERE Id_Docentes = ?',
-            $this->datos['codigo'], $this->datos['nombre'], $this->datos['direccion'], $this->datos['email'], $this->datos['telefono'], $this->datos['escalafon'], $this->datos['idDocente']);
-        }else if($accion==='eliminar'){
-            return $this->db->consultaSQL('DELETE FROM docentes WHERE Id_Docentes = ?', $this->datos['idDocente']);
-        }else if($accion==='consultar'){
-            $this->db->consultaSQL('SELECT Id_Docentes, codigo, nombre, direccion, email, telefono, escalafon FROM docentes');
-            return $this->db->obtener_datos();
-        }
-    }
+} catch (Exception $e) {
+    echo json_encode(['error' => 'Fatal Exception: ' . $e->getMessage()]);
 }
 ?>
