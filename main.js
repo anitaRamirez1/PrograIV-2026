@@ -14,7 +14,8 @@ createApp({
         buscar_docentes,
         matriculas,
         busqueda_matriculas,
-        inscripciones
+        inscripciones,
+        busqueda_inscripciones // Registro del nuevo componente
     },
     data(){
         return{
@@ -27,7 +28,8 @@ createApp({
                 busqueda_docentes:{mostrar:false},
                 matriculas:{mostrar:false},
                 busqueda_matriculas:{mostrar:false},
-                inscripciones:{mostrar:false}
+                inscripciones:{mostrar:false},
+                busqueda_inscripciones:{mostrar:false} // Estado para la búsqueda de inscripciones
             }
         }
     },
@@ -42,9 +44,9 @@ createApp({
             this.$refs[ventana][metodo](data);
         },
         async sincronizarTablas() {
+            // Agregamos inscripciones y matriculas a la sincronización si tienes sus PHP listos
             const tablas = ['alumnos', 'materias', 'docentes'];
             tablas.forEach(tabla => {
-                // Ajustamos la ruta según tu estructura de carpetas
                 const endpoint = tabla === 'alumnos' ? 'alumno' : (tabla === 'materias' ? 'materia' : 'docentes');
                 fetch(`private/modulos/${tabla}/${endpoint}.php?accion=consultar`)
                     .then(res => res.json())
@@ -60,6 +62,7 @@ createApp({
         }
     },
     mounted(){
+        // Configuración de tablas en Dexie
         db.version(1).stores({
             "alumnos": "idAlumno, codigo, nombre, direccion, email, telefono",
             "materias": "idMateria, codigo, nombre, uv",
@@ -67,6 +70,7 @@ createApp({
             "matriculas": "idMatricula, idAlumno, idMateria, idDocente, fecha, estado",
             "inscripciones": "idInscripcion, idAlumno, idMateria, fecha, estado"
         });
+        
         this.sincronizarTablas();
     }
 }).directive('draggable', vDraggable).mount("#app");

@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/alertify.min.css"/>
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/themes/default.min.css"/>
+    <style>
+        body { background-color: #f8f9fa; }
+        #appSistema { min-height: 80vh; position: relative; }
+    </style>
 </head>
 <body>
     <div id="app">
@@ -25,7 +29,8 @@
             </div>
         </nav>
 
-        <div id="appSistema" class="container-fluid" style="position: relative; min-height: 80vh; margin-top: 20px;">
+        <div id="appSistema" class="container-fluid mt-4">
+            
             <alumnos @buscar='buscar("busqueda_alumnos","obtenerAlumnos")' :forms="forms" ref="alumnos" v-show="forms.alumnos.mostrar"></alumnos>
             <buscar_alumnos @modificar='modificar("alumnos","modificarAlumno", $event)' :forms="forms" ref="busqueda_alumnos" v-show="forms.busqueda_alumnos.mostrar"></buscar_alumnos>
 
@@ -38,7 +43,20 @@
             <matriculas @buscar='buscar("busqueda_matriculas","obtenerMatriculas")' :forms="forms" ref="matriculas" v-show="forms.matriculas.mostrar"></matriculas>
             <busqueda_matriculas @modificar='modificar("matriculas","modificarMatricula", $event)' :forms="forms" ref="busqueda_matriculas" v-show="forms.busqueda_matriculas.mostrar"></busqueda_matriculas>
             
-            <inscripciones :forms="forms" ref="inscripciones" v-show="forms.inscripciones.mostrar"></inscripciones>
+            <inscripciones 
+                @buscar='buscar("busqueda_inscripciones","obtenerInscripciones")' 
+                :forms="forms" 
+                ref="inscripciones" 
+                v-show="forms.inscripciones.mostrar">
+            </inscripciones>
+            
+            <busqueda_inscripciones 
+                @modificar='modificar("inscripciones","modificarInscripcion", $event)' 
+                :forms="forms" 
+                ref="busqueda_inscripciones" 
+                v-show="forms.busqueda_inscripciones.mostrar">
+            </busqueda_inscripciones>
+
         </div>
     </div>
 
@@ -58,7 +76,9 @@
     <script src="componentes/busqueda_docentes.js"></script>
     <script src="componentes/matriculas.js"></script>
     <script src="componentes/busqueda_matriculas.js"></script>
+    
     <script src="componentes/inscripciones.js"></script>
+    <script src="componentes/busqueda_inscripciones.js"></script>
     
     <script src="main.js"></script>
 </body>

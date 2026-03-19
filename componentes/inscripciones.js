@@ -51,22 +51,23 @@ const inscripciones = {
                 idInscripcion: 0,
                 idAlumno: '',
                 idMateria: '',
-                fecha: new Date().toISOString().substr(0, 10)
+                fecha: new Date().toISOString().substr(0, 10),
+                estado: 'activo'
             },
             accion: 'nuevo',
             alumnos: [],
             materias: []
         }
     },
-    watch: {
-        'forms.inscripciones.mostrar': function(valor) {
-            if (valor) this.cargarListas();
-        }
-    },
     methods: {
         async cargarListas() {
-            this.alumnos = await db.alumnos.toArray();
-            this.materias = await db.materias.toArray();
+            try {
+                this.alumnos = await db.alumnos.toArray();
+                this.materias = await db.materias.toArray();
+            } catch (error) {
+                console.error('Error cargando listas:', error);
+                alertify.error('Error al cargar datos');
+            }
         },
         cerrarFormulario() {
             this.forms.inscripciones.mostrar = false;
@@ -77,42 +78,50 @@ const inscripciones = {
                 idInscripcion: 0,
                 idAlumno: '',
                 idMateria: '',
-                fecha: new Date().toISOString().substr(0, 10)
+                fecha: new Date().toISOString().substr(0, 10),
+                estado: 'activo'
             };
         },
         modificarInscripcion(datos) {
             this.accion = 'modificar';
+            // Asegurar que los datos son planos
             this.inscripcion = { ...datos };
             this.forms.inscripciones.mostrar = true;
         },
         abrirBusqueda() {
-            // Asumiendo que crearás un componente de búsqueda similar a los otros
-            if(this.forms.busqueda_inscripciones) {
-                this.forms.busqueda_inscripciones.mostrar = !this.forms.busqueda_inscripciones.mostrar;
-                this.$emit('buscar');
-            } else {
-                alertify.error("El componente de búsqueda no está configurado");
-            }
+            this.forms.busqueda_inscripciones.mostrar = !this.forms.busqueda_inscripciones.mostrar;
+            this.$emit('buscar');
         },
         async guardarInscripcion() {
-            if (this.accion == 'nuevo') {
-                this.inscripcion.idInscripcion = uuid.v4();
+            try {
+                const datosLimpios = { ...this.inscripcion };
+
+                if (this.accion == 'nuevo') {
+                    datosLimpios.idInscripcion = uuid.v4();
+                }
+
+                // Guardar en IndexedDB
+                await db.inscripciones.put(datosLimpios);
+
+                // Crear una copia segura para enviar al servidor
+                const datosParaServidor = JSON.parse(JSON.stringify(datosLimpios));
+                const url = `private/modulos/inscripciones/inscripciones.php?accion=${this.accion}&inscripciones=${JSON.stringify(datosParaServidor)}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data !== true) {
+                    alertify.error("Error al sincronizar con el servidor");
+                } else {
+                    alertify.success(`Inscripción guardada correctamente`);
+                    this.limpiarFormulario();
+                    this.$emit('buscar');
+                }
+
+            } catch (e) {
+                console.error('Error completo:', e);
+                alertify.error("Error en base de datos local");
             }
-
-            await db.inscripciones.put(this.inscripcion);
-
-            // Sincronización con el servidor PHP
-            fetch(`private/modulos/inscripciones/inscripciones.php?accion=${this.accion}&inscripciones=${JSON.stringify(this.inscripcion)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data !== true) {
-                        alertify.error("Error de sincronización con el servidor");
-                    } else {
-                        alertify.success(`Inscripción guardada correctamente`);
-                        this.limpiarFormulario();
-                        this.$emit('buscar'); 
-                    }
-                });
         }
     },
     mounted() {
