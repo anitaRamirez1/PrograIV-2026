@@ -4,7 +4,6 @@ const { createApp } = Vue,
     sha256 = CryptoJS.SHA256,
     uuid = window.uuid;
 
-
 createApp({
     components:{
         alumnos,
@@ -12,7 +11,10 @@ createApp({
         materias,
         buscar_materias,
         docentes,
-        buscar_docentes
+        buscar_docentes,
+        matriculas,
+        busqueda_matriculas, // Nombre unificado
+        inscripciones
     },
     data(){
         return{
@@ -24,6 +26,7 @@ createApp({
                 docentes:{mostrar:false},
                 busqueda_docentes:{mostrar:false},
                 matriculas:{mostrar:false},
+                busqueda_matriculas:{mostrar:false}, // Agregado para evitar error 'undefined'
                 inscripciones:{mostrar:false}
             }
         }
