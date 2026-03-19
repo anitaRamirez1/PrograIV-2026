@@ -13,7 +13,7 @@ createApp({
         docentes,
         buscar_docentes,
         matriculas,
-        busqueda_matriculas, // Nombre unificado
+        busqueda_matriculas,
         inscripciones
     },
     data(){
@@ -26,7 +26,7 @@ createApp({
                 docentes:{mostrar:false},
                 busqueda_docentes:{mostrar:false},
                 matriculas:{mostrar:false},
-                busqueda_matriculas:{mostrar:false}, // Agregado para evitar error 'undefined'
+                busqueda_matriculas:{mostrar:false},
                 inscripciones:{mostrar:false}
             }
         }
@@ -40,6 +40,23 @@ createApp({
         },
         modificar(ventana, metodo, data){
             this.$refs[ventana][metodo](data);
+        },
+        async sincronizarTablas() {
+            const tablas = ['alumnos', 'materias', 'docentes'];
+            tablas.forEach(tabla => {
+                // Ajustamos la ruta según tu estructura de carpetas
+                const endpoint = tabla === 'alumnos' ? 'alumno' : (tabla === 'materias' ? 'materia' : 'docentes');
+                fetch(`private/modulos/${tabla}/${endpoint}.php?accion=consultar`)
+                    .then(res => res.json())
+                    .then(datos => {
+                        if (Array.isArray(datos)) {
+                            db[tabla].clear().then(() => {
+                                db[tabla].bulkPut(datos);
+                            });
+                        }
+                    })
+                    .catch(err => console.error(`Error sincronizando ${tabla}:`, err));
+            });
         }
     },
     mounted(){
@@ -50,5 +67,6 @@ createApp({
             "matriculas": "idMatricula, idAlumno, idMateria, idDocente, fecha, estado",
             "inscripciones": "idInscripcion, idAlumno, idMateria, fecha, estado"
         });
+        this.sincronizarTablas();
     }
 }).directive('draggable', vDraggable).mount("#app");
