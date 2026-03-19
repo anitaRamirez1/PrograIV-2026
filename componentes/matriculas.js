@@ -3,7 +3,7 @@ const matriculas = {
     data() {
         return {
             matricula: {
-                idMatricula: 0, 
+                idMatricula: '', 
                 idAlumno: '', 
                 idMateria: '', 
                 idDocente: '',
@@ -19,7 +19,6 @@ const matriculas = {
         }
     },
     watch: {
-        // Detecta cuando se abre el formulario para refrescar las listas
         'forms.matriculas.mostrar': function(valor) {
             if (valor) this.cargarListas();
         }
@@ -47,21 +46,37 @@ const matriculas = {
                 this.matricula.idMatricula = uuid.v4();
             }
             
-            await db.matriculas.put(this.matricula);
+            // Guardar en Dexie (Local)
+            await db.matriculas.put(JSON.parse(JSON.stringify(this.matricula)));
             
-            fetch(`private/modulos/matriculas/matriculas.php?accion=${this.accion}&matriculas=${JSON.stringify(this.matricula)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data !== true) alertify.error("Error de sincronización");
-                });
+            // Preparar datos para MySQL (Servidor)
+            let formData = new FormData();
+            formData.append('accion', this.accion);
+            formData.append('matriculas', JSON.stringify(this.matricula));
 
-            alertify.success(`Matrícula guardada con éxito`);
-            this.limpiarFormulario();
+            fetch(`private/modulos/matriculas/matriculas.php`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data === true || data === 1) {
+                    alertify.success(`Matrícula procesada correctamente`);
+                    this.limpiarFormulario();
+                    this.$emit('buscar'); // Refresca la tabla de búsqueda automáticamente
+                } else {
+                    alertify.error("Error en el servidor: " + data);
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alertify.error("Error de conexión con el servidor");
+            });
         },
         limpiarFormulario() {
             this.accion = 'nuevo';
             this.matricula = {
-                idMatricula: 0, 
+                idMatricula: '', 
                 idAlumno: '', 
                 idMateria: '', 
                 idDocente: '',
@@ -76,11 +91,11 @@ const matriculas = {
         this.cargarListas(); 
     },
     template: `
-        <div v-draggable v-if="forms.matriculas.mostrar" class="position-absolute top-50 start-50 translate-middle" style="z-index: 1050;">
+        <div v-draggable v-if="forms.matriculas.mostrar" class="position-absolute top-50 start-50 translate-middle" style="z-index: 1050; cursor: move;">
             <form @submit.prevent="guardarMatricula" @reset.prevent="limpiarFormulario">
                 <div class="card text-bg-dark" style="width: 450px; box-shadow: 0px 0px 15px black;">
                     <div class="card-header d-flex justify-content-between">
-                        <div class="p-1">REGISTRO DE MATRÍCULA</div>
+                        <div class="p-1 text-uppercase fw-bold">Registro de Matrícula</div>
                         <button type="button" class="btn-close btn-close-white" @click="cerrarFormulario"></button>
                     </div>
                     <div class="card-body">
