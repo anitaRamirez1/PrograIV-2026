@@ -12,9 +12,15 @@ class PasantiaController extends Controller
         $query = Pasantia::with('empresa');
 
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where('titulo', 'like', "%{$search}%")
-                  ->orWhere('descripcion', 'like', "%{$search}%");
+            $search = trim($request->input('search'));
+            $query->where(function($q) use ($search) {
+                $searchTerm = mb_strtolower($search, 'UTF-8');
+                $q->whereRaw('LOWER(titulo) LIKE ?', ["%{$searchTerm}%"])
+                  ->orWhereRaw('LOWER(descripcion) LIKE ?', ["%{$searchTerm}%"])
+                  ->orWhereHas('empresa', function($qEmp) use ($searchTerm) {
+                      $qEmp->whereRaw('LOWER(nombre_empresa) LIKE ?', ["%{$searchTerm}%"]);
+                  });
+            });
         }
 
         return response()->json($query->orderBy('Id', 'desc')->get());

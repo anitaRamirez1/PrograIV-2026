@@ -12,9 +12,12 @@ class EmpresaController extends Controller
         $query = Empresa::query();
 
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where('nombre_empresa', 'like', "%{$search}%")
-                  ->orWhere('nit', 'like', "%{$search}%");
+            $search = trim($request->input('search'));
+            $query->where(function($q) use ($search) {
+                $searchTerm = mb_strtolower($search, 'UTF-8');
+                $q->whereRaw('LOWER(nombre_empresa) LIKE ?', ["%{$searchTerm}%"])
+                  ->orWhereRaw('LOWER(nit) LIKE ?', ["%{$searchTerm}%"]);
+            });
         }
 
         return response()->json($query->orderBy('Id', 'desc')->get());
