@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('telefono', 20);
             $table->string('soctor', 50); // Mantuve la escritura solicitada
             $table->string('direccion', 150);
-            $table->timestamps();
         });
     }
 

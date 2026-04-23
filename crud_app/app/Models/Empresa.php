@@ -10,8 +10,7 @@ class Empresa extends Model
     use HasFactory;
 
     protected $primaryKey = 'Id';
-    
-    // Explicitly disabling timestamps if they weren't required by the original SQL, but keeping them since migration provided them it's fine.
+    public $timestamps = false;
     
     protected $fillable = ['nombre_empresa', 'nit', 'correo_contacto', 'telefono', 'soctor', 'direccion'];
 

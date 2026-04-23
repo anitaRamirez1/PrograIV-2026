@@ -19,8 +19,6 @@ return new class extends Migration
             
             // Relacion constraint
             $table->foreign('empresa_id')->references('Id')->on('empresas')->onDelete('cascade');
-            
-            $table->timestamps();
         });
     }
 

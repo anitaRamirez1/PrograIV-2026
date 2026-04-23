@@ -10,6 +10,7 @@ class Pasantia extends Model
     use HasFactory;
 
     protected $primaryKey = 'Id';
+    public $timestamps = false;
     
     protected $fillable = ['empresa_id', 'titulo', 'descripcion', 'habilidades_requeridas', 'duracion_meses', 'num_plazas'];
 
