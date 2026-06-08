@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Génesis Profesional - Autenticación</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/alertify.min.css"/>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/themes/bootstrap.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="estilos.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="app">
+        <!-- VISTA 1: INICIO DE SESIÓN -->
+        <div id="login-view" class="view active">
+            <div class="card login-card">
+                <div class="logo-container">
+                    <img src="recursos/imagenes/LOGO_GENESIS_PROFESIONAL.png" alt="Logo Génesis Profesional" class="logo">
+                </div>
+                
+                <form id="login-form">
+                    <div class="input-group">
+                        <label for="login-email">Correo <span class="required">*</span>:</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="login-email" required>
+                            <span class="error-msg" id="login-email-error"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="login-password">Contraseña <span class="required">*</span>:</label>
+                        <div class="input-wrapper password-wrapper">
+                            <input type="password" id="login-password" required>
+                            <button type="button" class="toggle-password"><i class="fa-solid fa-eye"></i></button>
+                            <span class="error-msg" id="login-password-error"></span>
+                        </div>
+                    </div>
+
+                    <div class="actions-row space-between">
+                        <a href="#" id="link-forgot-password" class="link-secondary">Olvide mi contraseña</a>
+                        <button type="submit" class="btn btn-primary">INICIAR SESIÓN</button>
+                    </div>
+
+                    <div class="bottom-links">
+                        <a href="#" id="link-create-account" class="link-primary">Crear una cuenta</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- VISTA 2: CREAR CUENTA -->
+        <div id="register-view" class="view">
+            <div class="card register-card">
+                <div class="header-row">
+                    <img src="recursos/imagenes/LOGO_GENESIS_PROFESIONAL.png" alt="Logo" class="logo-small">
+                    <h2>CREAR CUENTA</h2>
+                </div>
+                
+                <form id="register-form">
+                    <div class="input-group row-layout">
+                        <label for="reg-nombres">Nombres <span class="required">*</span>:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="reg-nombres" required>
+                            <span class="error-msg" id="reg-nombres-error"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group row-layout">
+                        <label for="reg-apellidos">Apellidos <span class="required">*</span>:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="reg-apellidos" required>
+                            <span class="error-msg" id="reg-apellidos-error"></span>
+                        </div>
+                    </div>
+
+                    <div class="input-group row-layout">
+                        <label for="reg-email">Correo institucional <span class="required">*</span>:</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="reg-email" required>
+                            <span class="error-msg" id="reg-email-error"></span>
+                        </div>
+                    </div>
+
+                    <div class="input-group row-layout">
+                        <label for="reg-password">Contraseña <span class="required">*</span>:</label>
+                        <div class="input-wrapper password-wrapper">
+                            <input type="password" id="reg-password" required>
+                            <button type="button" class="toggle-password"><i class="fa-solid fa-eye"></i></button>
+                            <span class="error-msg" id="reg-password-error"></span>
+                            <div class="password-strength">
+                                <div class="strength-bar"></div>
+                                <span class="strength-text"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group row-layout">
+                        <label for="reg-confirm-password">Confirmar contraseña <span class="required">*</span>:</label>
+                        <div class="input-wrapper password-wrapper">
+                            <input type="password" id="reg-confirm-password" required>
+                            <button type="button" class="toggle-password"><i class="fa-solid fa-eye"></i></button>
+                            <span class="error-msg" id="reg-confirm-password-error"></span>
+                        </div>
+                    </div>
+
+                    <div class="input-group terms-group">
+                        <input type="checkbox" id="reg-terms" required>
+                        <label for="reg-terms">Acepto los Términos y Condiciones de uso <span class="required">*</span></label>
+                        <span class="error-msg" id="reg-terms-error"></span>
+                    </div>
+
+                    <div class="actions-row space-between">
+                        <button type="button" id="btn-cancel-register" class="btn btn-danger">CANCELAR</button>
+                        <button type="submit" class="btn btn-primary">CREAR CUENTA <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- VISTA 3: RECUPERAR CONTRASEÑA -->
+        <div id="recover-view" class="view">
+            <div class="card recover-card">
+                <div class="logo-container">
+                    <img src="recursos/imagenes/LOGO_GENESIS_PROFESIONAL.png" alt="Logo Génesis Profesional" class="logo">
+                </div>
+                <h2>Recuperar Contraseña</h2>
+                <p class="subtitle">Ingresa tu correo institucional para recibir un enlace de recuperación.</p>
+                
+                <form id="recover-form">
+                    <div class="input-group">
+                        <label for="rec-email">Correo institucional <span class="required">*</span>:</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="rec-email" required>
+                            <span class="error-msg" id="rec-email-error"></span>
+                        </div>
+                    </div>
+
+                    <div class="actions-row column">
+                        <button type="submit" class="btn btn-primary w-100">Enviar enlace</button>
+                        <button type="button" id="btn-back-login" class="btn btn-text w-100 mt-2">Volver a inicio de sesión</button>
+                    </div>
+                </form>
+                
+                <div id="recover-success-msg" class="success-msg hidden">
+                    <i class="fa-solid fa-circle-check"></i> Enlace enviado correctamente. Revisa tu bandeja de entrada (expira en 30 min).
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL DE VALIDACIÓN -->
+        <div id="validation-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div id="validation-loading">
+                    <div class="spinner"></div>
+                    <h3>¡Tus datos están siendo validados, por favor ten paciencia!</h3>
+                </div>
+                <div id="validation-success" class="hidden">
+                    <div class="success-icon"><i class="fa-solid fa-check-circle"></i></div>
+                    <h3>¡Tus datos se han comprobado exitosamente!</h3>
+                    <button type="button" id="btn-continue-dashboard" class="btn btn-primary mt-3">Continuar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD (MOCK) -->
+        <div id="dashboard-view" class="view">
+            <div class="card">
+                <h2>Bienvenido al Dashboard</h2>
+                <p class="subtitle">Has iniciado sesión exitosamente.</p>
+                <div class="actions-row column">
+                    <button id="btn-logout" class="btn btn-primary">Cerrar Sesión</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/alertify.min.js"></script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
